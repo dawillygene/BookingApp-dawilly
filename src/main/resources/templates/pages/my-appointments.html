@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>My Appointments - Booking Web Application</title>
+</head>
+
+<body>
+    <main>
+        <!-- My Appointments Section -->
+        <section class="py-20 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center mb-12">
+                    <h2 class="text-4xl font-bold gradient-text">My Appointments</h2>
+                    <a th:href="@{/booking}" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">Book New
+                        Appointment</a>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="mb-8">
+                    <nav class="flex space-x-4">
+                        <button class="px-4 py-2 bg-blue-600 text-white rounded-lg">All</button>
+                        <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Upcoming</button>
+                        <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Completed</button>
+                        <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">Cancelled</button>
+                    </nav>
+                </div>
+
+                <!-- Appointments List -->
+                <div class="space-y-6">
+                    <!-- Appointment Card -->
+                    <div th:each="appointment : ${appointments}" class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-check text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900" th:text="${appointment.service.name}">Hair Cut & Styling</h3>
+                                    <p class="text-gray-600" th:text="${'with ' + appointment.provider.name}">with John Smith</p>
+                                    <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                        <span><i class="fas fa-calendar mr-1"></i><span
+                                                th:text="${#dates.format(appointment.date, 'EEEE, MMMM dd, yyyy')}">Friday,
+                                                December 15, 2024</span></span>
+                                        <span><i class="fas fa-clock mr-1"></i><span
+                                                th:text="${appointment.time}">2:00 PM</span></span>
+                                        <span><i class="fas fa-clock mr-1"></i><span
+                                                th:text="${appointment.duration + ' minutes'}">60 minutes</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span th:class="${appointment.status == 'CONFIRMED'} ? 'bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium' : 
+                                               (${appointment.status == 'COMPLETED'} ? 'bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium' : 
+                                               'bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium')" th:text="${appointment.status}">Confirmed</span>
+                                <p class="text-gray-600 text-sm mt-1" th:text="${'$' + appointment.price}">$45.00</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between items-center">
+                                <div class="text-sm text-gray-600">
+                                    <p><i class="fas fa-map-marker-alt mr-1"></i><span th:text="${appointment.location}">123 Salon Street, City</span></p>
+                                    <p th:if="${appointment.notes}" class="mt-1"><i class="fas fa-sticky-note mr-1"></i><span th:text="${appointment.notes}">Notes about the appointment</span></p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button th:if="${appointment.status == 'CONFIRMED'}" th:onclick="'rescheduleAppointment(' + ${appointment.id} + ')'" class="text-blue-600 hover:text-blue-800 px-3 py-1 border border-blue-600 rounded-lg text-sm">Reschedule</button>
+                                    <button th:if="${appointment.status == 'CONFIRMED'}" th:onclick="'cancelAppointment(' + ${appointment.id} + ')'" class="text-red-600 hover:text-red-800 px-3 py-1 border border-red-600 rounded-lg text-sm">Cancel</button>
+                                    <button th:if="${appointment.status == 'COMPLETED'}" th:onclick="'rateAppointment(' + ${appointment.id} + ')'" class="text-yellow-600 hover:text-yellow-800 px-3 py-1 border border-yellow-600 rounded-lg text-sm">Rate Service</button>
+                                    <button th:onclick="'viewDetails(' + ${appointment.id} + ')'" class="text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-600 rounded-lg text-sm">Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sample appointments when list is empty -->
+                    <div th:if="${#lists.isEmpty(appointments)}" class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="flex items-start space-x-4">
+                                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-calendar-check text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-semibold text-gray-900">Hair Cut & Styling</h3>
+                                    <p class="text-gray-600">with John Smith</p>
+                                    <div class="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                                        <span><i class="fas fa-calendar mr-1"></i>Friday, December 15, 2024</span>
+                                        <span><i class="fas fa-clock mr-1"></i>2:00 PM</span>
+                                        <span><i class="fas fa-clock mr-1"></i>60 minutes</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Confirmed
+                                </span>
+                                <p class="text-gray-600 text-sm mt-1">$45.00</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex justify-between items-center">
+                                <div class="text-sm text-gray-600">
+                                    <p><i class="fas fa-map-marker-alt mr-1"></i>123 Salon Street, City</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button class="text-blue-600 hover:text-blue-800 px-3 py-1 border border-blue-600 rounded-lg text-sm">Reschedule</button>
+                                    <button class="text-red-600 hover:text-red-800 px-3 py-1 border border-red-600 rounded-lg text-sm">Cancel</button>
+                                    <button class="text-gray-600 hover:text-gray-800 px-3 py-1 border border-gray-600 rounded-lg text-sm">Details</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(appointments)}" class="text-center py-12">
+                    <div class="w-24 h-24 bg-gray-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <i class="fas fa-calendar-times text-gray-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No appointments found</h3>
+                    <p class="text-gray-600 mb-6">You haven't booked any appointments yet. Start by booking your first appointment!
+                    </p>
+                    <a th:href="@{/booking}" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">Book Your
+                        First Appointment</a>
+                </div>
+            </div>
+        </section>
+
+        <script>
+            function rescheduleAppointment(appointmentId) {
+                window.location.href = '/appointments/' + appointmentId + '/reschedule';
+            }
+
+            function cancelAppointment(appointmentId) {
+                if (confirm('Are you sure you want to cancel this appointment?')) {
+                    window.location.href = '/appointments/' + appointmentId + '/cancel';
+                }
+            }
+
+            function rateAppointment(appointmentId) {
+                window.location.href = '/appointments/' + appointmentId + '/rate';
+            }
+
+            function viewDetails(appointmentId) {
+                window.location.href = '/appointments/' + appointmentId;
+            }
+        </script>
+    </main>
+</body>
+
+</html>

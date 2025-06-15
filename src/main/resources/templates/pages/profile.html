@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>My Profile - Booking Web Application</title>
+</head>
+
+<body>
+    <main>
+        <!-- Profile Section -->
+        <section class="py-20 bg-gray-50">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-bold mb-12 gradient-text">My Profile</h2>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- Profile Info -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h3 class="text-xl font-semibold mb-6 text-blue-900">Personal Information</h3>
+                            <form th:action="@{/profile/update}" th:object="${userProfile}" method="post" class="space-y-6">
+                                <div class="grid md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                        <input type="text" th:field="*{firstName}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                        <input type="text" th:field="*{lastName}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" th:field="*{email}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                                    <input type="tel" th:field="*{phoneNumber}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="(555) 123-4567">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                                    <textarea th:field="*{address}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Your address..."></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                                    <input type="date" th:field="*{dateOfBirth}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <button type="submit" class="gradient-bg text-white py-3 px-6 rounded-lg hover:opacity-90 transition-opacity font-semibold">Update Profile</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Profile Summary & Actions -->
+                    <div class="space-y-6">
+                        <!-- Profile Summary -->
+                        <div class="bg-white rounded-xl shadow-md p-6 text-center">
+                            <div class="w-24 h-24 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                <span class="text-white text-2xl font-bold" th:text="${userProfile.initials ?: 'JD'}">JD</span>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-900" th:text="${userProfile.fullName ?: 'John Doe'}">John Doe</h3>
+                            <p class="text-gray-600" th:text="${userProfile.email ?: 'john@example.com'}">john@example.com</p>
+                            <div class="mt-4 pt-4 border-t border-gray-200">
+                                <p class="text-sm text-gray-600">Member since</p>
+                                <p class="font-medium" th:text="${#dates.format(userProfile.joinDate, 'MMMM yyyy') ?: 'January 2024'}">January 2024</p>
+                            </div>
+                        </div>
+
+                        <!-- Quick Stats -->
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h4 class="text-lg font-semibold mb-4 text-blue-900">Your Stats</h4>
+                            <div class="space-y-3">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total Appointments</span>
+                                    <span class="font-semibold" th:text="${userStats.totalAppointments ?: '12'}">12</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Upcoming</span>
+                                    <span class="font-semibold text-green-600" th:text="${userStats.upcomingAppointments ?: '2'}">2</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Completed</span>
+                                    <span class="font-semibold text-blue-600" th:text="${userStats.completedAppointments ?: '8'}">8</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Cancelled</span>
+                                    <span class="font-semibold text-red-600" th:text="${userStats.cancelledAppointments ?: '2'}">2</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <h4 class="text-lg font-semibold mb-4 text-blue-900">Quick Actions</h4>
+                            <div class="space-y-3">
+                                <a th:href="@{/booking}" class="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center">Book New Appointment</a>
+                                <a th:href="@{/my-appointments}" class="block w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors text-center">View My Appointments</a>
+                                <a th:href="@{/profile/change-password}" class="block w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors text-center">Change Password</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>

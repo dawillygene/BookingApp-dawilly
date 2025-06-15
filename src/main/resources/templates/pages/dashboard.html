@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout/base :: layout(~{::title}, ~{::main})}">
+
+<head>
+    <title>Dashboard - Booking Web Application</title>
+</head>
+
+<body>
+    <main>
+        <!-- Dashboard Section -->
+        <section class="py-20 bg-gray-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-4xl font-bold mb-12 gradient-text">Dashboard</h2>
+
+                <!-- Stats Cards -->
+                <div class="grid md:grid-cols-4 gap-6 mb-12">
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Total Appointments</p>
+                                <p class="text-3xl font-bold text-blue-900" th:text="${stats.totalAppointments ?: '24'}">24</p>
+                            </div>
+                            <i class="fas fa-calendar-check text-blue-500 text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Upcoming</p>
+                                <p class="text-3xl font-bold text-green-600" th:text="${stats.upcomingAppointments ?: '3'}">3</p>
+                            </div>
+                            <i class="fas fa-clock text-green-500 text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Completed</p>
+                                <p class="text-3xl font-bold text-blue-600" th:text="${stats.completedAppointments ?: '18'}">18</p>
+                            </div>
+                            <i class="fas fa-check-circle text-blue-500 text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Cancelled</p>
+                                <p class="text-3xl font-bold text-red-600" th:text="${stats.cancelledAppointments ?: '3'}">3</p>
+                            </div>
+                            <i class="fas fa-times-circle text-red-500 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Appointments -->
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-6 text-blue-900">Recent Appointments</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-3 px-4 text-gray-600">Date</th>
+                                    <th class="text-left py-3 px-4 text-gray-600">Time</th>
+                                    <th class="text-left py-3 px-4 text-gray-600">Service</th>
+                                    <th class="text-left py-3 px-4 text-gray-600">Provider</th>
+                                    <th class="text-left py-3 px-4 text-gray-600">Status</th>
+                                    <th class="text-left py-3 px-4 text-gray-600">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="appointment : ${recentAppointments}" class="border-b hover:bg-gray-50">
+                                    <td class="py-3 px-4" th:text="${#dates.format(appointment.date, 'MMM dd, yyyy')}">Dec 15, 2024</td>
+                                    <td class="py-3 px-4" th:text="${appointment.time}">2:00 PM</td>
+                                    <td class="py-3 px-4" th:text="${appointment.service.name}">Hair Cut</td>
+                                    <td class="py-3 px-4" th:text="${appointment.provider.name}">John Smith</td>
+                                    <td class="py-3 px-4">
+                                        <span th:class="${appointment.status == 'CONFIRMED'} ? 'bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm' : 
+                                                       (${appointment.status == 'COMPLETED'} ? 'bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm' : 
+                                                       'bg-red-100 text-red-800 px-2 py-1 rounded-full text-sm')" th:text="${appointment.status}">Confirmed</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <a th:href="@{'/appointments/' + ${appointment.id} + '/reschedule'}" th:if="${appointment.status == 'CONFIRMED'}" class="text-blue-600 hover:text-blue-800 mr-2">Reschedule</a>
+                                        <a th:href="@{'/appointments/' + ${appointment.id} + '/cancel'}" th:if="${appointment.status == 'CONFIRMED'}" class="text-red-600 hover:text-red-800">Cancel</a>
+                                        <span th:unless="${appointment.status == 'CONFIRMED'}" class="text-gray-400">No actions</span>
+                                    </td>
+                                </tr>
+                                <!-- Sample data when no appointments exist -->
+                                <tr th:if="${#lists.isEmpty(recentAppointments)}" class="border-b hover:bg-gray-50">
+                                    <td class="py-3 px-4">Dec 15, 2024</td>
+                                    <td class="py-3 px-4">2:00 PM</td>
+                                    <td class="py-3 px-4">Hair Cut</td>
+                                    <td class="py-3 px-4">John Smith</td>
+                                    <td class="py-3 px-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm">Confirmed</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-600 hover:text-blue-800 mr-2">Reschedule</button>
+                                        <button class="text-red-600 hover:text-red-800">Cancel</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+
+</html>

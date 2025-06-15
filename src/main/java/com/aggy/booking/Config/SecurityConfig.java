@@ -21,7 +21,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login","/register", "/css/**", "/js/**", "/images/**").permitAll()
+                        .requestMatchers("/","/booking/**", "/home", "/login", "/register", "/css/**", "/js/**", "/images/**", "/h2-console/**").permitAll()
                         .anyRequest().authenticated() // All other requests require authentication
                 )
                 .formLogin(form -> form
@@ -34,7 +34,11 @@ public class SecurityConfig {
                         .logoutUrl("/logout")       // Spring Security's default logout URL
                         .logoutSuccessUrl("/login?logout") // Redirect to login page with logout message
                         .permitAll()
-                );
+                )
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for H2 console and development
+                .headers(headers -> headers
+                    .frameOptions(frameOptions -> frameOptions.deny())
+                ); // Allow H2 console frames
         return http.build();
     }
 
