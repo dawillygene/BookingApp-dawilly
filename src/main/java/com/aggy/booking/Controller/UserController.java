@@ -1,142 +1,219 @@
 package com.aggy.booking.Controller;
 
+import com.aggy.booking.Model.User;
+import com.aggy.booking.Model.Appointment;
+import com.aggy.booking.Model.AppointmentStatus;
+import com.aggy.booking.Service.AppointmentService;
+import com.aggy.booking.Service.UserService;
+import com.aggy.booking.Service.ServiceService;
+import com.aggy.booking.Service.ServiceProviderService;
+import com.aggy.booking.Service.TimeSlotService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/user")
 public class UserController {
 
+    @Autowired
+    private AppointmentService appointmentService;
+    
+    @Autowired
+    private UserService userService;
+    
+    @Autowired
+    private ServiceService serviceService;
+    
+    @Autowired
+    private ServiceProviderService serviceProviderService;
+    
+    @Autowired
+    private TimeSlotService timeSlotService;
+
+    // Helper method to get current user
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            Optional<User> user = userService.findByUsername(auth.getName());
+            return user.orElse(null);
+        }
+        return null;
+    }
+
     @GetMapping("/profile")
     public String profile(Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        
         model.addAttribute("pageTitle", "My Profile");
-        model.addAttribute("userProfile", getSampleUserProfile());
-        model.addAttribute("userStats", getSampleUserStats());
+        model.addAttribute("userProfile", currentUser);
+        model.addAttribute("userStats", getUserStatsForUser(currentUser));
         return "pages/profile";
     }
 
     @PostMapping("/profile/update")
-    public String updateProfile(@ModelAttribute UserProfile userProfile, Model model) {
-        // Process profile update
-        model.addAttribute("message", "Profile updated successfully!");
+    public String updateProfile(@RequestParam String firstName,
+                              @RequestParam String lastName,
+                              @RequestParam String phoneNumber,
+                              @RequestParam String address,
+                              @RequestParam String dateOfBirth,
+                              Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        
+        try {
+            currentUser.setFirstName(firstName);
+            currentUser.setLastName(lastName);
+            currentUser.setPhoneNumber(phoneNumber);
+            currentUser.setAddress(address);
+            currentUser.setDateOfBirth(dateOfBirth);
+            userService.updateUser(currentUser);
+            
+            model.addAttribute("message", "Profile updated successfully!");
+        } catch (Exception e) {
+            model.addAttribute("error", "Failed to update profile: " + e.getMessage());
+        }
+        
         return "redirect:/user/profile";
-    }
-
-    @GetMapping("/appointments")
-    public String myAppointments(@RequestParam(required = false) String status, Model model) {
-        model.addAttribute("pageTitle", "My Appointments");
-        model.addAttribute("appointments", getSampleAppointments(status));
-        model.addAttribute("selectedStatus", status);
-        return "pages/my-appointments";
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        model.addAttribute("pageTitle", "Dashboard");
-        model.addAttribute("stats", getSampleDashboardStats());
-        model.addAttribute("recentAppointments", getSampleRecentAppointments());
-        return "pages/dashboard";
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        
+        AppointmentService.AppointmentStats stats = appointmentService.getUserAppointmentStats(currentUser);
+        List<Appointment> recentAppointments = appointmentService.getRecentAppointments(currentUser, 5);
+        
+        model.addAttribute("pageTitle", "User Dashboard");
+        model.addAttribute("userName", currentUser.getFullName());
+        model.addAttribute("upcomingCount", stats.getUpcomingCount());
+        model.addAttribute("totalCount", stats.getTotalCount());
+        model.addAttribute("completedCount", stats.getCompletedCount());
+        model.addAttribute("pendingCount", stats.getPendingCount());
+        model.addAttribute("stats", stats);
+        model.addAttribute("recentAppointments", recentAppointments);
+        return "user/dashboard";
     }
 
-    // Sample data methods
-    private UserProfile getSampleUserProfile() {
-        UserProfile profile = new UserProfile();
-        profile.firstName = "John";
-        profile.lastName = "Doe";
-        profile.email = "john.doe@example.com";
-        profile.phoneNumber = "(555) 123-4567";
-        profile.address = "123 Main St, Anytown, USA";
-        profile.dateOfBirth = "1990-01-15";
-        return profile;
+    @GetMapping("/booking")
+    public String booking(Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("pageTitle", "Book Appointment");
+        model.addAttribute("services", serviceService.getActiveServices());
+        model.addAttribute("providers", serviceProviderService.getActiveServiceProviders());
+        return "user/booking";
     }
 
-    private UserStats getSampleUserStats() {
-        UserStats stats = new UserStats();
-        stats.totalAppointments = 12;
-        stats.upcomingAppointments = 2;
-        stats.completedAppointments = 8;
-        stats.cancelledAppointments = 2;
-        return stats;
+    @GetMapping("/appointments")
+    public String appointments(@RequestParam(required = false) String status, Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+        
+        List<Appointment> appointments;
+        if (status != null && !status.isEmpty()) {
+            try {
+                AppointmentStatus statusEnum = AppointmentStatus.valueOf(status.toUpperCase());
+                appointments = appointmentService.getUserAppointmentsByStatus(currentUser, statusEnum);
+            } catch (IllegalArgumentException e) {
+                appointments = appointmentService.getUserAppointments(currentUser);
+            }
+        } else {
+            appointments = appointmentService.getUserAppointments(currentUser);
+        }
+        
+        model.addAttribute("pageTitle", "My Appointments");
+        model.addAttribute("appointments", appointments);
+        model.addAttribute("selectedStatus", status);
+        return "user/appointments";
     }
 
-    private Object getSampleAppointments(String status) {
-        return java.util.Arrays.asList(
-            new Appointment(1L, "Hair Cut", "John Smith", "2024-12-15", "2:00 PM", 60, "CONFIRMED", 45.00, "123 Salon Street"),
-            new Appointment(2L, "Consultation", "Dr. Johnson", "2024-12-18", "10:00 AM", 30, "COMPLETED", 30.00, "456 Medical Center"),
-            new Appointment(3L, "Color Treatment", "Maria Garcia", "2024-12-20", "1:00 PM", 120, "CONFIRMED", 120.00, "789 Beauty Plaza")
-        );
+    // API Endpoints for AJAX calls
+    @PostMapping("/appointments/{id}/cancel")
+    @ResponseBody
+    public String cancelAppointment(@PathVariable Long id) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "error:Not authenticated";
+        }
+        
+        try {
+            Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(id);
+            if (appointmentOpt.isPresent()) {
+                Appointment appointment = appointmentOpt.get();
+                if (!appointment.getUser().getId().equals(currentUser.getId())) {
+                    return "error:Unauthorized";
+                }
+                appointmentService.cancelAppointment(id);
+                return "success:Appointment cancelled successfully";
+            }
+            return "error:Appointment not found";
+        } catch (Exception e) {
+            return "error:" + e.getMessage();
+        }
     }
 
-    private DashboardStats getSampleDashboardStats() {
-        DashboardStats stats = new DashboardStats();
-        stats.totalAppointments = 24;
-        stats.upcomingAppointments = 3;
-        stats.completedAppointments = 18;
-        stats.cancelledAppointments = 3;
-        return stats;
+    @PostMapping("/appointments/{id}/reschedule")
+    @ResponseBody
+    public String rescheduleAppointment(@PathVariable Long id, @RequestParam Long newTimeSlotId) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "error:Not authenticated";
+        }
+        
+        try {
+            Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(id);
+            if (appointmentOpt.isPresent()) {
+                Appointment appointment = appointmentOpt.get();
+                if (!appointment.getUser().getId().equals(currentUser.getId())) {
+                    return "error:Unauthorized";
+                }
+                
+                Optional<com.aggy.booking.Model.TimeSlot> timeSlotOpt = timeSlotService.getTimeSlotById(newTimeSlotId);
+                if (timeSlotOpt.isPresent()) {
+                    appointmentService.rescheduleAppointment(id, timeSlotOpt.get());
+                    return "success:Appointment rescheduled successfully";
+                }
+                return "error:Time slot not found";
+            }
+            return "error:Appointment not found";
+        } catch (Exception e) {
+            return "error:" + e.getMessage();
+        }
     }
 
-    private Object getSampleRecentAppointments() {
-        return java.util.Arrays.asList(
-            new Appointment(1L, "Hair Cut", "John Smith", "2024-12-15", "2:00 PM", 60, "CONFIRMED", 45.00, "123 Salon Street"),
-            new Appointment(2L, "Consultation", "Dr. Johnson", "2024-12-18", "10:00 AM", 30, "COMPLETED", 30.00, "456 Medical Center")
-        );
+    // Helper method to get user stats
+    private UserStats getUserStatsForUser(User user) {
+        AppointmentService.AppointmentStats stats = appointmentService.getUserAppointmentStats(user);
+        UserStats userStats = new UserStats();
+        userStats.totalAppointments = stats.getTotalCount().intValue();
+        userStats.upcomingAppointments = stats.getUpcomingCount().intValue();
+        userStats.completedAppointments = stats.getCompletedCount().intValue();
+        userStats.cancelledAppointments = stats.getCancelledCount().intValue();
+        return userStats;
     }
 
     // Data classes
-    static class UserProfile {
-        public String firstName;
-        public String lastName;
-        public String email;
-        public String phoneNumber;
-        public String address;
-        public String dateOfBirth;
-        
-        public String getFullName() {
-            return firstName + " " + lastName;
-        }
-        
-        public String getInitials() {
-            return (firstName != null ? firstName.substring(0, 1) : "") + 
-                   (lastName != null ? lastName.substring(0, 1) : "");
-        }
-    }
-
     static class UserStats {
-        public int totalAppointments;
-        public int upcomingAppointments;
-        public int completedAppointments;
-        public int cancelledAppointments;
-    }
-
-    static class Appointment {
-        public Long id;
-        public String service;
-        public String provider;
-        public String date;
-        public String time;
-        public int duration;
-        public String status;
-        public double price;
-        public String location;
-        public String notes;
-
-        public Appointment(Long id, String service, String provider, String date, String time, 
-                          int duration, String status, double price, String location) {
-            this.id = id;
-            this.service = service;
-            this.provider = provider;
-            this.date = date;
-            this.time = time;
-            this.duration = duration;
-            this.status = status;
-            this.price = price;
-            this.location = location;
-        }
-    }
-
-    static class DashboardStats {
         public int totalAppointments;
         public int upcomingAppointments;
         public int completedAppointments;

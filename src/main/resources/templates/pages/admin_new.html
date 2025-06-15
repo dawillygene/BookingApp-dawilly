@@ -8,10 +8,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .gradient-text { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .card-hover { transition: transform 0.2s; }
-        .card-hover:hover { transform: translateY(-2px); }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .card-hover {
+            transition: transform 0.2s;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 
@@ -22,8 +35,7 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center">
                     <h1 class="text-white text-xl font-bold">
-                        <i class="fas fa-calendar-alt mr-2"></i>
-                        Admin Dashboard
+                        <i class="fas fa-calendar-alt mr-2"></i> Admin Dashboard
                     </h1>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -38,7 +50,7 @@
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         <!-- Dashboard Overview Stats -->
         <div class="grid md:grid-cols-4 gap-6 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-md card-hover">
@@ -53,7 +65,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="bg-white p-6 rounded-xl shadow-md card-hover">
                 <div class="flex items-center justify-between">
                     <div>
@@ -66,7 +78,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="bg-white p-6 rounded-xl shadow-md card-hover">
                 <div class="flex items-center justify-between">
                     <div>
@@ -79,7 +91,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="bg-white p-6 rounded-xl shadow-md card-hover">
                 <div class="flex items-center justify-between">
                     <div>
@@ -96,12 +108,11 @@
 
         <!-- Functional Requirements Management Section -->
         <div class="grid lg:grid-cols-2 gap-8">
-            
+
             <!-- User Management -->
             <div class="bg-white rounded-xl shadow-md p-6">
                 <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
-                    <i class="fas fa-users text-blue-500 mr-3"></i>
-                    User Management
+                    <i class="fas fa-users text-blue-500 mr-3"></i> User Management
                 </h3>
                 <div class="space-y-4">
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -129,8 +140,7 @@
             <!-- Appointment Management -->
             <div class="bg-white rounded-xl shadow-md p-6">
                 <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
-                    <i class="fas fa-calendar-alt text-green-500 mr-3"></i>
-                    Appointment Management
+                    <i class="fas fa-calendar-alt text-green-500 mr-3"></i> Appointment Management
                 </h3>
                 <div class="space-y-4">
                     <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -162,8 +172,7 @@
             <!-- Booking Operations -->
             <div class="bg-white rounded-xl shadow-md p-6">
                 <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
-                    <i class="fas fa-bookmark text-purple-500 mr-3"></i>
-                    Booking Operations
+                    <i class="fas fa-bookmark text-purple-500 mr-3"></i> Booking Operations
                 </h3>
                 <div class="space-y-3">
                     <button class="w-full flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
@@ -193,8 +202,7 @@
             <!-- Email Notifications -->
             <div class="bg-white rounded-xl shadow-md p-6">
                 <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
-                    <i class="fas fa-envelope text-indigo-500 mr-3"></i>
-                    Email Notifications
+                    <i class="fas fa-envelope text-indigo-500 mr-3"></i> Email Notifications
                 </h3>
                 <div class="space-y-4">
                     <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -228,8 +236,7 @@
         <!-- Recent Activity -->
         <div class="mt-8 bg-white rounded-xl shadow-md p-6">
             <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
-                <i class="fas fa-clock text-gray-500 mr-3"></i>
-                Recent Activity
+                <i class="fas fa-clock text-gray-500 mr-3"></i> Recent Activity
             </h3>
             <div class="space-y-4">
                 <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">

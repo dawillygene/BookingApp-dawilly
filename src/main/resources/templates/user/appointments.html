@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>My Appointments - Booking Application</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .appointment-card {
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+        
+        .appointment-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .upcoming {
+            border-left-color: #10b981;
+        }
+        
+        .confirmed {
+            border-left-color: #3b82f6;
+        }
+        
+        .pending {
+            border-left-color: #f59e0b;
+        }
+        
+        .completed {
+            border-left-color: #6b7280;
+        }
+        
+        .cancelled {
+            border-left-color: #ef4444;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Top Navigation Bar -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/user/dashboard" class="text-white hover:text-gray-200 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-white text-xl font-bold">
+                        <i class="fas fa-calendar-alt mr-2"></i> My Appointments
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/user/booking" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-plus mr-1"></i> Book New
+                    </a>
+                    <a href="/user/dashboard" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-home mr-1"></i> Dashboard
+                    </a>
+                    <a href="/logout" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Filters and Actions -->
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Your Appointments</h2>
+                <p class="text-gray-600">Manage your upcoming and past appointments</p>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="flex bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+                <button class="filter-tab active px-4 py-2 rounded-md text-sm font-medium transition-colors" data-filter="all">
+                    All
+                </button>
+                <button class="filter-tab px-4 py-2 rounded-md text-sm font-medium transition-colors" data-filter="upcoming">
+                    Upcoming
+                </button>
+                <button class="filter-tab px-4 py-2 rounded-md text-sm font-medium transition-colors" data-filter="completed">
+                    Completed
+                </button>
+                <button class="filter-tab px-4 py-2 rounded-md text-sm font-medium transition-colors" data-filter="cancelled">
+                    Cancelled
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-2 rounded-full mr-3">
+                        <i class="fas fa-calendar-check text-green-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Upcoming</p>
+                        <p class="text-xl font-bold text-gray-800">3</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-2 rounded-full mr-3">
+                        <i class="fas fa-check-circle text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Completed</p>
+                        <p class="text-xl font-bold text-gray-800">9</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-yellow-100 p-2 rounded-full mr-3">
+                        <i class="fas fa-clock text-yellow-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Pending</p>
+                        <p class="text-xl font-bold text-gray-800">1</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                <div class="flex items-center">
+                    <div class="bg-red-100 p-2 rounded-full mr-3">
+                        <i class="fas fa-times-circle text-red-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Cancelled</p>
+                        <p class="text-xl font-bold text-gray-800">1</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments List -->
+        <div class="space-y-6">
+
+            <!-- Upcoming Appointments -->
+            <div class="appointment-card upcoming bg-white rounded-xl shadow-sm p-6" data-status="upcoming">
+                <div class="flex flex-col lg:flex-row justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Hair Cut & Styling</h3>
+                                <p class="text-gray-600 mt-1">Professional hair cutting and styling service</p>
+                            </div>
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                                Confirmed
+                            </span>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-calendar mr-2 text-blue-500"></i>
+                                <span>Dec 18, 2025</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-clock mr-2 text-blue-500"></i>
+                                <span>2:00 PM - 3:00 PM</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-user mr-2 text-blue-500"></i>
+                                <span>Sarah Johnson</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
+                                <span>Salon Downtown</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center text-gray-600 mb-4">
+                            <i class="fas fa-dollar-sign mr-2 text-green-500"></i>
+                            <span class="font-semibold">$45.00</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row gap-3 lg:ml-6">
+                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-edit mr-2"></i>Reschedule
+                        </button>
+                        <button class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                        <button class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-info mr-2"></i>Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Appointment -->
+            <div class="appointment-card pending bg-white rounded-xl shadow-sm p-6" data-status="upcoming">
+                <div class="flex flex-col lg:flex-row justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Medical Consultation</h3>
+                                <p class="text-gray-600 mt-1">General health consultation and check-up</p>
+                            </div>
+                            <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-medium">
+                                Pending
+                            </span>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-calendar mr-2 text-blue-500"></i>
+                                <span>Dec 20, 2025</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-clock mr-2 text-blue-500"></i>
+                                <span>10:30 AM - 11:30 AM</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-user mr-2 text-blue-500"></i>
+                                <span>Dr. Michael Brown</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
+                                <span>Health Center</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center text-gray-600 mb-4">
+                            <i class="fas fa-dollar-sign mr-2 text-green-500"></i>
+                            <span class="font-semibold">$80.00</span>
+                        </div>
+
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                            <p class="text-sm text-yellow-800">
+                                <i class="fas fa-info-circle mr-2"></i> Waiting for provider confirmation. You'll receive an email once confirmed.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row gap-3 lg:ml-6">
+                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-edit mr-2"></i>Reschedule
+                        </button>
+                        <button class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmed Appointment -->
+            <div class="appointment-card confirmed bg-white rounded-xl shadow-sm p-6" data-status="upcoming">
+                <div class="flex flex-col lg:flex-row justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Dental Cleaning</h3>
+                                <p class="text-gray-600 mt-1">Professional dental cleaning and check-up</p>
+                            </div>
+                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                                Confirmed
+                            </span>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-calendar mr-2 text-blue-500"></i>
+                                <span>Dec 22, 2025</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-clock mr-2 text-blue-500"></i>
+                                <span>3:15 PM - 4:15 PM</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-user mr-2 text-blue-500"></i>
+                                <span>Dr. Emily Davis</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
+                                <span>Dental Clinic</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center text-gray-600 mb-4">
+                            <i class="fas fa-dollar-sign mr-2 text-green-500"></i>
+                            <span class="font-semibold">$120.00</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row gap-3 lg:ml-6">
+                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-edit mr-2"></i>Reschedule
+                        </button>
+                        <button class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Completed Appointment -->
+            <div class="appointment-card completed bg-white rounded-xl shadow-sm p-6" data-status="completed">
+                <div class="flex flex-col lg:flex-row justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-800">Massage Therapy</h3>
+                                <p class="text-gray-600 mt-1">60-minute relaxation massage</p>
+                            </div>
+                            <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-medium">
+                                Completed
+                            </span>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-calendar mr-2 text-blue-500"></i>
+                                <span>Dec 10, 2025</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-clock mr-2 text-blue-500"></i>
+                                <span>1:00 PM - 2:00 PM</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-user mr-2 text-blue-500"></i>
+                                <span>Lisa Wilson</span>
+                            </div>
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>
+                                <span>Wellness Spa</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center text-gray-600 mb-4">
+                            <i class="fas fa-dollar-sign mr-2 text-green-500"></i>
+                            <span class="font-semibold">$90.00</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col lg:flex-row gap-3 lg:ml-6">
+                        <button class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-redo mr-2"></i>Book Again
+                        </button>
+                        <button class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-star mr-2"></i>Rate Service
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No appointments message (initially hidden) -->
+        <div id="noAppointments" class="text-center py-12 hidden">
+            <div class="bg-white rounded-xl shadow-sm p-8">
+                <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-600 mb-2">No appointments found</h3>
+                <p class="text-gray-500 mb-6">You don't have any appointments matching the selected filter.</p>
+                <a href="/user/booking" class="inline-flex items-center px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-plus mr-2"></i> Book Your First Appointment
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Filter functionality
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const appointmentCards = document.querySelectorAll('.appointment-card');
+        const noAppointmentsDiv = document.getElementById('noAppointments');
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Update active tab
+                filterTabs.forEach(t => {
+                    t.classList.remove('active', 'bg-blue-500', 'text-white');
+                    t.classList.add('text-gray-600', 'hover:text-gray-800');
+                });
+                this.classList.add('active', 'bg-blue-500', 'text-white');
+                this.classList.remove('text-gray-600', 'hover:text-gray-800');
+
+                // Filter appointments
+                const filter = this.dataset.filter;
+                let visibleCount = 0;
+
+                appointmentCards.forEach(card => {
+                    const status = card.dataset.status;
+                    if (filter === 'all' || status === filter) {
+                        card.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Show/hide no appointments message
+                if (visibleCount === 0) {
+                    noAppointmentsDiv.classList.remove('hidden');
+                } else {
+                    noAppointmentsDiv.classList.add('hidden');
+                }
+            });
+        });
+
+        // Add click handlers for action buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('button')) {
+                const button = e.target.closest('button');
+                const buttonText = button.textContent.trim();
+
+                if (buttonText.includes('Reschedule')) {
+                    alert('Reschedule functionality will redirect to booking page with pre-filled appointment details.');
+                } else if (buttonText.includes('Cancel')) {
+                    if (confirm('Are you sure you want to cancel this appointment?')) {
+                        alert('Appointment cancelled. You will receive a confirmation email.');
+                    }
+                } else if (buttonText.includes('Book Again')) {
+                    alert('Redirecting to booking page with this service pre-selected.');
+                } else if (buttonText.includes('Rate Service')) {
+                    alert('Rating functionality would open a modal for service rating.');
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

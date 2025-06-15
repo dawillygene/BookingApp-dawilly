@@ -1,149 +1,191 @@
 package com.aggy.booking.Controller;
 
+import com.aggy.booking.Model.*;
+import com.aggy.booking.Service.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/booking")
 public class BookingController {
 
+    @Autowired
+    private AppointmentService appointmentService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private ServiceService serviceService;
+
+    @Autowired
+    private ServiceProviderService serviceProviderService;
+
+    @Autowired
+    private TimeSlotService timeSlotService;
+
+    // Helper method to get current user
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+            Optional<User> user = userService.findByUsername(auth.getName());
+            return user.orElse(null);
+        }
+        return null;
+    }
+
     @GetMapping
     public String bookingPage(Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
         model.addAttribute("pageTitle", "Book Appointment");
-        // Add the missing bookingForm object
-        model.addAttribute("bookingForm", new BookingForm());
-        // Add sample data for demo purposes
-        model.addAttribute("services", getSampleServices());
-        model.addAttribute("providers", getSampleProviders());
-        model.addAttribute("availableSlots", getSampleTimeSlots());
-        return "pages/booking";
+        model.addAttribute("services", serviceService.getActiveServices());
+        model.addAttribute("providers", serviceProviderService.getActiveServiceProviders());
+        return "user/booking";
     }
 
-    @PostMapping("/confirm")
-    public String confirmBooking(@ModelAttribute BookingForm bookingForm, Model model) {
-        // Process booking confirmation
-        model.addAttribute("message", "Booking confirmed successfully!");
-        return "redirect:/dashboard";
-    }
+    @GetMapping("/available-slots")
+    @ResponseBody
+    public List<TimeSlot> getAvailableSlots(@RequestParam Long providerId,
+            @RequestParam String date) {
+        try {
+            Optional<ServiceProvider> providerOpt = serviceProviderService.getServiceProviderById(providerId);
 
-    @GetMapping("/filter")
-    public String filterSlots(@RequestParam(required = false) String date,
-                             @RequestParam(required = false) String service,
-                             @RequestParam(required = false) String provider,
-                             Model model) {
-        model.addAttribute("selectedDate", date);
-        model.addAttribute("selectedService", service);
-        model.addAttribute("selectedProvider", provider);
-        // Add the missing bookingForm object for the filter view as well
-        model.addAttribute("bookingForm", new BookingForm());
-        model.addAttribute("services", getSampleServices());
-        model.addAttribute("providers", getSampleProviders());
-        // Filter and return updated slots
-        model.addAttribute("availableSlots", getFilteredTimeSlots(date, service, provider));
-        return "pages/booking";
-    }
-
-    // Sample data methods for demo
-    private Object getSampleServices() {
-        return java.util.Arrays.asList(
-            new Service(1L, "Hair Cut", 45, 45.00),
-            new Service(2L, "Hair Styling", 60, 65.00),
-            new Service(3L, "Consultation", 30, 30.00),
-            new Service(4L, "Color Treatment", 120, 120.00)
-        );
-    }
-
-    private Object getSampleProviders() {
-        return java.util.Arrays.asList(
-            new Provider(1L, "John Smith", "Hair Stylist"),
-            new Provider(2L, "Dr. Johnson", "Consultant"),
-            new Provider(3L, "Maria Garcia", "Color Specialist"),
-            new Provider(4L, "David Lee", "Senior Stylist")
-        );
-    }
-
-    private Object getSampleTimeSlots() {
-        return java.util.Arrays.asList(
-            new TimeSlot(1L, "9:00 AM", true, "Hair Cut", "John Smith"),
-            new TimeSlot(2L, "10:00 AM", false, "Consultation", "Dr. Johnson"),
-            new TimeSlot(3L, "11:00 AM", true, "Hair Styling", "Maria Garcia"),
-            new TimeSlot(4L, "2:00 PM", true, "Color Treatment", "David Lee")
-        );
-    }
-
-    private Object getFilteredTimeSlots(String date, String service, String provider) {
-        // Return filtered time slots based on criteria
-        return getSampleTimeSlots();
-    }
-
-    // Inner classes for demo data
-    static class Service {
-        public Long id;
-        public String name;
-        public int duration;
-        public double price;
-
-        public Service(Long id, String name, int duration, double price) {
-            this.id = id;
-            this.name = name;
-            this.duration = duration;
-            this.price = price;
+            if (providerOpt.isPresent()) {
+                LocalDate localDate = LocalDate.parse(date);
+                return timeSlotService.getAvailableTimeSlots(providerOpt.get(), localDate);
+            }
+            return java.util.Collections.emptyList();
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
         }
     }
 
-    static class Provider {
-        public Long id;
-        public String name;
-        public String specialty;
+    @PostMapping("/create")
+    @ResponseBody
+    public String createBooking(@RequestParam Long serviceId,
+            @RequestParam Long timeSlotId,
+            @RequestParam(required = false) String notes) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "error:Not authenticated";
+        }
 
-        public Provider(Long id, String name, String specialty) {
-            this.id = id;
-            this.name = name;
-            this.specialty = specialty;
+        try {
+            Optional<Service> serviceOpt = serviceService.getServiceById(serviceId);
+            Optional<TimeSlot> timeSlotOpt = timeSlotService.getTimeSlotById(timeSlotId);
+
+            if (serviceOpt.isPresent() && timeSlotOpt.isPresent()) {
+                Service service = serviceOpt.get();
+                TimeSlot timeSlot = timeSlotOpt.get();
+
+                if (!timeSlot.getIsAvailable()) {
+                    return "error:Time slot is no longer available";
+                }
+
+                Appointment appointment = appointmentService.bookAppointment(
+                        currentUser, service, timeSlot, notes != null ? notes : "");
+
+                return "success:Appointment booked successfully with ID: " + appointment.getId();
+            }
+
+            return "error:Service or time slot not found";
+        } catch (Exception e) {
+            return "error:" + e.getMessage();
         }
     }
 
-    static class TimeSlot {
-        public Long id;
-        public String time;
-        public boolean available;
-        public String service;
-        public String provider;
-
-        public TimeSlot(Long id, String time, boolean available, String service, String provider) {
-            this.id = id;
-            this.time = time;
-            this.available = available;
-            this.service = service;
-            this.provider = provider;
+    @GetMapping("/providers/{serviceId}")
+    @ResponseBody
+    public List<ServiceProvider> getProvidersForService(@PathVariable Long serviceId) {
+        try {
+            Optional<Service> serviceOpt = serviceService.getServiceById(serviceId);
+            if (serviceOpt.isPresent()) {
+                // For now, return all active providers
+                return serviceProviderService.getActiveServiceProviders();
+            }
+            return java.util.Collections.emptyList();
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
         }
     }
 
-    static class BookingForm {
-        public Long slotId;
-        public String fullName;
-        public String email;
-        public String phoneNumber;
-        public String notes;
+    @GetMapping("/services/categories")
+    @ResponseBody
+    public List<String> getServiceCategories() {
+        try {
+            return serviceService.getAllCategories();
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
+        }
+    }
 
-        // Default constructor
-        public BookingForm() {}
+    @GetMapping("/services/category/{category}")
+    @ResponseBody
+    public List<Service> getServicesByCategory(@PathVariable String category) {
+        try {
+            return serviceService.getServicesByCategory(category);
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
+        }
+    }
 
-        // Getters and setters for Spring form binding
-        public Long getSlotId() { return slotId; }
-        public void setSlotId(Long slotId) { this.slotId = slotId; }
+    @GetMapping("/confirmation/{appointmentId}")
+    public String bookingConfirmation(@PathVariable Long appointmentId, Model model) {
+        User currentUser = getCurrentUser();
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
 
-        public String getFullName() { return fullName; }
-        public void setFullName(String fullName) { this.fullName = fullName; }
+        Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(appointmentId);
+        if (appointmentOpt.isPresent()) {
+            Appointment appointment = appointmentOpt.get();
 
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
+            // Verify that the appointment belongs to the current user
+            if (!appointment.getUser().getId().equals(currentUser.getId())) {
+                return "redirect:/user/dashboard";
+            }
 
-        public String getPhoneNumber() { return phoneNumber; }
-        public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+            model.addAttribute("pageTitle", "Booking Confirmation");
+            model.addAttribute("appointment", appointment);
+            return "user/booking-confirmation";
+        }
 
-        public String getNotes() { return notes; }
-        public void setNotes(String notes) { this.notes = notes; }
+        return "redirect:/user/dashboard";
+    }
+
+    // Utility endpoint to generate time slots for testing
+    @PostMapping("/generate-slots")
+    @ResponseBody
+    public String generateTimeSlots(@RequestParam Long providerId,
+            @RequestParam String date,
+            @RequestParam(defaultValue = "60") int intervalMinutes,
+            @RequestParam(defaultValue = "9") int startHour,
+            @RequestParam(defaultValue = "17") int endHour) {
+        try {
+            Optional<ServiceProvider> providerOpt = serviceProviderService.getServiceProviderById(providerId);
+            if (providerOpt.isPresent()) {
+                LocalDate localDate = LocalDate.parse(date);
+                List<TimeSlot> slots = timeSlotService.generateDailyTimeSlots(
+                        providerOpt.get(), localDate, intervalMinutes, startHour, endHour);
+                return "success:Generated " + slots.size() + " time slots";
+            }
+            return "error:Provider not found";
+        } catch (Exception e) {
+            return "error:" + e.getMessage();
+        }
     }
 }

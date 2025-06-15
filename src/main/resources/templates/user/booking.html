@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Book Appointment - Booking Application</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .time-slot {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .time-slot:hover {
+            background-color: #e0e7ff;
+            border-color: #6366f1;
+        }
+        
+        .time-slot.selected {
+            background-color: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        
+        .time-slot.unavailable {
+            background-color: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <!-- Top Navigation Bar -->
+    <nav class="gradient-bg shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <a href="/user/dashboard" class="text-white hover:text-gray-200 mr-4">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <h1 class="text-white text-xl font-bold">
+                        <i class="fas fa-plus-circle mr-2"></i> Book New Appointment
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/user/dashboard" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-home mr-1"></i> Dashboard
+                    </a>
+                    <a href="/logout" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Booking Form -->
+        <form id="bookingForm" class="bg-white rounded-xl shadow-md p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-8">Schedule Your Appointment</h2>
+
+            <!-- Service Selection -->
+            <div class="mb-8">
+                <label class="block text-sm font-medium text-gray-700 mb-3">Select Service</label>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" data-service="haircut">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Hair Cut & Styling</h3>
+                                <p class="text-sm text-gray-600">Professional hair cutting and styling</p>
+                                <p class="text-lg font-bold text-blue-600 mt-2">$45</p>
+                            </div>
+                            <div class="text-blue-500">
+                                <i class="fas fa-cut text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" data-service="consultation">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Medical Consultation</h3>
+                                <p class="text-sm text-gray-600">General health consultation</p>
+                                <p class="text-lg font-bold text-blue-600 mt-2">$80</p>
+                            </div>
+                            <div class="text-blue-500">
+                                <i class="fas fa-stethoscope text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" data-service="dental">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Dental Cleaning</h3>
+                                <p class="text-sm text-gray-600">Professional dental cleaning</p>
+                                <p class="text-lg font-bold text-blue-600 mt-2">$120</p>
+                            </div>
+                            <div class="text-blue-500">
+                                <i class="fas fa-tooth text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" data-service="massage">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-semibold text-gray-800">Massage Therapy</h3>
+                                <p class="text-sm text-gray-600">Relaxing therapeutic massage</p>
+                                <p class="text-lg font-bold text-blue-600 mt-2">$90</p>
+                            </div>
+                            <div class="text-blue-500">
+                                <i class="fas fa-hand-paper text-2xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Date Selection -->
+            <div class="mb-8">
+                <label class="block text-sm font-medium text-gray-700 mb-3">Select Date</label>
+                <input type="date" id="appointmentDate" name="appointmentDate" min="" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <!-- Time Slot Selection -->
+            <div class="mb-8">
+                <label class="block text-sm font-medium text-gray-700 mb-3">Available Time Slots</label>
+                <div id="timeSlots" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    <!-- Time slots will be populated based on selected date -->
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="09:00">
+                        9:00 AM
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="09:30">
+                        9:30 AM
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="10:00">
+                        10:00 AM
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="10:30">
+                        10:30 AM
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="11:00">
+                        11:00 AM
+                    </div>
+                    <div class="time-slot unavailable border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="11:30">
+                        11:30 AM
+                        <div class="text-xs">Booked</div>
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="14:00">
+                        2:00 PM
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="14:30">
+                        2:30 PM
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="15:00">
+                        3:00 PM
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="15:30">
+                        3:30 PM
+                    </div>
+                    <div class="time-slot border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="16:00">
+                        4:00 PM
+                    </div>
+                    <div class="time-slot unavailable border border-gray-300 rounded-lg p-3 text-center text-sm" data-time="16:30">
+                        4:30 PM
+                        <div class="text-xs">Booked</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Notes -->
+            <div class="mb-8">
+                <label for="notes" class="block text-sm font-medium text-gray-700 mb-3">Additional Notes (Optional)</label>
+                <textarea id="notes" name="notes" rows="3" placeholder="Any special requirements or notes for your appointment..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+            </div>
+
+            <!-- Booking Summary -->
+            <div id="bookingSummary" class="mb-8 p-6 bg-gray-50 rounded-lg hidden">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Booking Summary</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Service</p>
+                        <p id="summaryService" class="font-medium text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Date & Time</p>
+                        <p id="summaryDateTime" class="font-medium text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Price</p>
+                        <p id="summaryPrice" class="font-medium text-gray-800">-</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Status</p>
+                        <p class="font-medium text-green-600">Pending Confirmation</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <button type="submit" id="bookButton" disabled class="flex-1 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    <i class="fas fa-check mr-2"></i>
+                    Book Appointment
+                </button>
+                <a href="/user/dashboard" class="flex-1 text-center bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-times mr-2"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Initialize date picker with today's date as minimum
+        document.getElementById('appointmentDate').min = new Date().toISOString().split('T')[0];
+
+        let selectedService = null;
+        let selectedTime = null;
+
+        // Service selection
+        document.querySelectorAll('.service-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.service-option').forEach(opt =>
+                    opt.classList.remove('border-blue-500', 'bg-blue-50'));
+                this.classList.add('border-blue-500', 'bg-blue-50');
+                selectedService = this.dataset.service;
+                updateBookingSummary();
+                checkFormValidity();
+            });
+        });
+
+        // Time slot selection
+        document.querySelectorAll('.time-slot:not(.unavailable)').forEach(slot => {
+            slot.addEventListener('click', function() {
+                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTime = this.dataset.time;
+                updateBookingSummary();
+                checkFormValidity();
+            });
+        });
+
+        // Date change handler
+        document.getElementById('appointmentDate').addEventListener('change', function() {
+            updateBookingSummary();
+            checkFormValidity();
+            // Here you would typically fetch available time slots for the selected date
+        });
+
+        function updateBookingSummary() {
+            const date = document.getElementById('appointmentDate').value;
+            const summaryDiv = document.getElementById('bookingSummary');
+
+            if (selectedService && selectedTime && date) {
+                summaryDiv.classList.remove('hidden');
+
+                // Update summary fields
+                const serviceTexts = {
+                    'haircut': 'Hair Cut & Styling - $45',
+                    'consultation': 'Medical Consultation - $80',
+                    'dental': 'Dental Cleaning - $120',
+                    'massage': 'Massage Therapy - $90'
+                };
+
+                document.getElementById('summaryService').textContent = serviceTexts[selectedService] || '';
+                document.getElementById('summaryDateTime').textContent = `${date} at ${selectedTime}`;
+
+                const prices = {
+                    'haircut': '$45',
+                    'consultation': '$80',
+                    'dental': '$120',
+                    'massage': '$90'
+                };
+                document.getElementById('summaryPrice').textContent = prices[selectedService] || '';
+            } else {
+                summaryDiv.classList.add('hidden');
+            }
+        }
+
+        function checkFormValidity() {
+            const date = document.getElementById('appointmentDate').value;
+            const bookButton = document.getElementById('bookButton');
+
+            if (selectedService && selectedTime && date) {
+                bookButton.disabled = false;
+                bookButton.classList.remove('bg-gray-300', 'cursor-not-allowed');
+                bookButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
+            } else {
+                bookButton.disabled = true;
+                bookButton.classList.add('bg-gray-300', 'cursor-not-allowed');
+                bookButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+            }
+        }
+
+        // Form submission
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Here you would typically send the booking data to the server
+            alert('Booking request submitted! You will receive a confirmation email shortly.');
+
+            // Redirect to dashboard
+            window.location.href = '/user/dashboard';
+        });
+    </script>
+</body>
+
+</html>
