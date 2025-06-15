@@ -210,29 +210,48 @@
                     <i class="fas fa-calendar-alt text-green-500 mr-3"></i> Upcoming Appointments
                 </h3>
 
-                <!-- Sample upcoming appointments -->
+                <!-- Recent Appointments -->
                 <div class="space-y-4">
-                    <div class="appointment-card upcoming bg-gray-50 p-4 rounded-lg">
+                    <!-- No appointments message -->
+                    <div th:if="${#lists.isEmpty(recentAppointments)}" class="text-center py-8">
+                        <i class="fas fa-calendar-times text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500 mb-4">No recent appointments</p>
+                        <a href="/user/booking" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i> Book Your First Appointment
+                        </a>
+                    </div>
+
+                    <!-- Appointments List -->
+                    <div th:each="appointment : ${recentAppointments}" class="appointment-card bg-gray-50 p-4 rounded-lg" th:classappend="${appointment.status.toString().toLowerCase()}">
                         <div class="flex justify-between items-start">
                             <div class="flex-1">
-                                <h4 class="font-semibold text-gray-800">Hair Cut & Styling</h4>
+                                <h4 class="font-semibold text-gray-800" th:text="${appointment.service.name}">Service Name</h4>
                                 <p class="text-sm text-gray-600 mt-1">
-                                    <i class="fas fa-calendar mr-2"></i>December 18, 2025 at 2:00 PM
+                                    <i class="fas fa-calendar mr-2"></i>
+                                    <span th:text="${#temporals.format(appointment.appointmentDateTime, 'MMMM dd, yyyy')} + ' at ' + ${#temporals.format(appointment.appointmentDateTime, 'h:mm a')}">Date and Time</span>
                                 </p>
                                 <p class="text-sm text-gray-600">
-                                    <i class="fas fa-user mr-2"></i>with Sarah Johnson
+                                    <i class="fas fa-user mr-2"></i>with <span th:text="${appointment.provider.fullName}">Provider Name</span>
+                                </p>
+                                <p class="text-sm text-gray-600" th:if="${appointment.provider.location}">
+                                    <i class="fas fa-map-marker-alt mr-2"></i><span th:text="${appointment.provider.location}">Location</span>
                                 </p>
                                 <p class="text-sm text-gray-600">
-                                    <i class="fas fa-map-marker-alt mr-2"></i>Salon Downtown
+                                    <i class="fas fa-dollar-sign mr-2"></i><span th:text="'$' + ${appointment.price}">Price</span>
                                 </p>
                             </div>
                             <div class="flex flex-col space-y-2">
-                                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs">Confirmed</span>
-                                <div class="flex space-x-2">
-                                    <button class="text-blue-500 hover:text-blue-700 text-sm">
+                                <span class="px-3 py-1 rounded-full text-xs font-medium" th:classappend="${appointment.status == T(com.aggy.booking.Model.AppointmentStatus).PENDING} ? 'bg-yellow-100 text-yellow-800' : 
+                                                     ${appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CONFIRMED} ? 'bg-green-100 text-green-800' : 
+                                                     ${appointment.status == T(com.aggy.booking.Model.AppointmentStatus).COMPLETED} ? 'bg-blue-100 text-blue-800' : 
+                                                     ${appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CANCELLED} ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'" th:text="${appointment.status.toString()}">Status</span>
+
+                                <!-- Action buttons for active appointments -->
+                                <div th:if="${appointment.status == T(com.aggy.booking.Model.AppointmentStatus).PENDING or appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CONFIRMED}" class="flex space-x-2">
+                                    <button class="text-blue-500 hover:text-blue-700 text-sm" th:onclick="'rescheduleAppointment(' + ${appointment.id} + ')'">
                                         <i class="fas fa-edit"></i> Reschedule
                                     </button>
-                                    <button class="text-red-500 hover:text-red-700 text-sm">
+                                    <button class="text-red-500 hover:text-red-700 text-sm" th:onclick="'cancelAppointment(' + ${appointment.id} + ')'">
                                         <i class="fas fa-times"></i> Cancel
                                     </button>
                                 </div>
@@ -240,149 +259,184 @@
                         </div>
                     </div>
 
-                    <div class="appointment-card pending bg-gray-50 p-4 rounded-lg">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h4 class="font-semibold text-gray-800">Medical Consultation</h4>
-                                <p class="text-sm text-gray-600 mt-1">
-                                    <i class="fas fa-calendar mr-2"></i>December 20, 2025 at 10:30 AM
-                                </p>
-                                <p class="text-sm text-gray-600">
-                                    <i class="fas fa-user mr-2"></i>with Dr. Michael Brown
-                                </p>
-                                <p class="text-sm text-gray-600">
-                                    <i class="fas fa-map-marker-alt mr-2"></i>Health Center
-                                </p>
-                            </div>
-                            <div class="flex flex-col space-y-2">
-                                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">Pending</span>
-                                <div class="flex space-x-2">
-                                    <button class="text-blue-500 hover:text-blue-700 text-sm">
-                                        <i class="fas fa-edit"></i> Reschedule
-                                    </button>
-                                    <button class="text-red-500 hover:text-red-700 text-sm">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="appointment-card confirmed bg-gray-50 p-4 rounded-lg">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h4 class="font-semibold text-gray-800">Dental Cleaning</h4>
-                                <p class="text-sm text-gray-600 mt-1">
-                                    <i class="fas fa-calendar mr-2"></i>December 22, 2025 at 3:15 PM
-                                </p>
-                                <p class="text-sm text-gray-600">
-                                    <i class="fas fa-user mr-2"></i>with Dr. Emily Davis
-                                </p>
-                                <p class="text-sm text-gray-600">
-                                    <i class="fas fa-map-marker-alt mr-2"></i>Dental Clinic
-                                </p>
-                            </div>
-                            <div class="flex flex-col space-y-2">
-                                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">Confirmed</span>
-                                <div class="flex space-x-2">
-                                    <button class="text-blue-500 hover:text-blue-700 text-sm">
-                                        <i class="fas fa-edit"></i> Reschedule
-                                    </button>
-                                    <button class="text-red-500 hover:text-red-700 text-sm">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- View All Appointments Link -->
+                    <div th:if="${!#lists.isEmpty(recentAppointments)}" class="pt-4 border-t border-gray-200">
+                        <a href="/user/appointments" class="block text-center text-blue-600 hover:text-blue-800 font-medium">
+                            <i class="fas fa-arrow-right mr-2"></i> View All Appointments
+                        </a>
                     </div>
                 </div>
-
-                <div class="mt-6 text-center">
-                    <a href="/user/appointments" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                        <i class="fas fa-eye mr-2"></i> View All Appointments
-                    </a>
-                </div>
+                <i class="fas fa-user mr-2"></i>with Dr. Michael Brown
+                </p>
+                <p class="text-sm text-gray-600">
+                    <i class="fas fa-map-marker-alt mr-2"></i>Health Center
+                </p>
             </div>
-        </div>
-
-        <!-- Functional Requirements Status -->
-        <div class="mt-8 bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
-                <i class="fas fa-tasks text-blue-500 mr-3"></i> Available Features
-            </h3>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-user-check text-green-600 text-xl"></i>
-                    </div>
-                    <h4 class="font-semibold text-gray-800 mb-2">Registration & Login</h4>
-                    <p class="text-sm text-gray-600 mb-3">Secure account management</p>
-                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs">Active</span>
-                </div>
-
-                <div class="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-calendar-day text-blue-600 text-xl"></i>
-                    </div>
-                    <h4 class="font-semibold text-gray-800 mb-2">View Time Slots</h4>
-                    <p class="text-sm text-gray-600 mb-3">Browse available appointments</p>
-                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">Coming Soon</span>
-                </div>
-
-                <div class="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
-                    <div class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-bookmark text-purple-600 text-xl"></i>
-                    </div>
-                    <h4 class="font-semibold text-gray-800 mb-2">Book Appointments</h4>
-                    <p class="text-sm text-gray-600 mb-3">Schedule new appointments</p>
-                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">Coming Soon</span>
-                </div>
-
-                <div class="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <div class="bg-orange-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-edit text-orange-600 text-xl"></i>
-                    </div>
-                    <h4 class="font-semibold text-gray-800 mb-2">Reschedule & Cancel</h4>
-                    <p class="text-sm text-gray-600 mb-3">Manage existing bookings</p>
-                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">Coming Soon</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Email Notifications Status -->
-        <div class="mt-8 bg-white rounded-xl shadow-md p-6">
-            <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
-                <i class="fas fa-envelope text-indigo-500 mr-3"></i> Email Notifications
-            </h3>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div class="flex items-center">
-                        <div class="bg-green-100 p-2 rounded-full mr-4">
-                            <i class="fas fa-check-circle text-green-500"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-800">Booking Confirmations</h4>
-                            <p class="text-sm text-gray-600">Instant email when appointment is booked</p>
-                        </div>
-                    </div>
-                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">Planned</span>
-                </div>
-
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div class="flex items-center">
-                        <div class="bg-blue-100 p-2 rounded-full mr-4">
-                            <i class="fas fa-bell text-blue-500"></i>
-                        </div>
-                        <div>
-                            <h4 class="font-medium text-gray-800">Appointment Reminders</h4>
-                            <p class="text-sm text-gray-600">Email reminder 24 hours before appointment</p>
-                        </div>
-                    </div>
-                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">Planned</span>
+            <div class="flex flex-col space-y-2">
+                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">Pending</span>
+                <div class="flex space-x-2">
+                    <button class="text-blue-500 hover:text-blue-700 text-sm">
+                                        <i class="fas fa-edit"></i> Reschedule
+                                    </button>
+                    <button class="text-red-500 hover:text-red-700 text-sm">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <div class="appointment-card confirmed bg-gray-50 p-4 rounded-lg">
+        <div class="flex justify-between items-start">
+            <div class="flex-1">
+                <h4 class="font-semibold text-gray-800">Dental Cleaning</h4>
+                <p class="text-sm text-gray-600 mt-1">
+                    <i class="fas fa-calendar mr-2"></i>December 22, 2025 at 3:15 PM
+                </p>
+                <p class="text-sm text-gray-600">
+                    <i class="fas fa-user mr-2"></i>with Dr. Emily Davis
+                </p>
+                <p class="text-sm text-gray-600">
+                    <i class="fas fa-map-marker-alt mr-2"></i>Dental Clinic
+                </p>
+            </div>
+            <div class="flex flex-col space-y-2">
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">Confirmed</span>
+                <div class="flex space-x-2">
+                    <button class="text-blue-500 hover:text-blue-700 text-sm">
+                                        <i class="fas fa-edit"></i> Reschedule
+                                    </button>
+                    <button class="text-red-500 hover:text-red-700 text-sm">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <div class="mt-6 text-center">
+        <a href="/user/appointments" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+            <i class="fas fa-eye mr-2"></i> View All Appointments
+        </a>
+    </div>
+    </div>
+    </div>
+
+    <!-- Functional Requirements Status -->
+    <div class="mt-8 bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
+            <i class="fas fa-tasks text-blue-500 mr-3"></i> Available Features
+        </h3>
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                <div class="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-user-check text-green-600 text-xl"></i>
+                </div>
+                <h4 class="font-semibold text-gray-800 mb-2">Registration & Login</h4>
+                <p class="text-sm text-gray-600 mb-3">Secure account management</p>
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs">Active</span>
+            </div>
+
+            <div class="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div class="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-calendar-day text-blue-600 text-xl"></i>
+                </div>
+                <h4 class="font-semibold text-gray-800 mb-2">View Time Slots</h4>
+                <p class="text-sm text-gray-600 mb-3">Browse available appointments</p>
+                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">Coming Soon</span>
+            </div>
+
+            <div class="text-center p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <div class="bg-purple-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-bookmark text-purple-600 text-xl"></i>
+                </div>
+                <h4 class="font-semibold text-gray-800 mb-2">Book Appointments</h4>
+                <p class="text-sm text-gray-600 mb-3">Schedule new appointments</p>
+                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">Coming Soon</span>
+            </div>
+
+            <div class="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div class="bg-orange-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-edit text-orange-600 text-xl"></i>
+                </div>
+                <h4 class="font-semibold text-gray-800 mb-2">Reschedule & Cancel</h4>
+                <p class="text-sm text-gray-600 mb-3">Manage existing bookings</p>
+                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs">Coming Soon</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Notifications Status -->
+    <div class="mt-8 bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
+            <i class="fas fa-envelope text-indigo-500 mr-3"></i> Email Notifications
+        </h3>
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <div class="bg-green-100 p-2 rounded-full mr-4">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-800">Booking Confirmations</h4>
+                        <p class="text-sm text-gray-600">Instant email when appointment is booked</p>
+                    </div>
+                </div>
+                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">Planned</span>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center">
+                    <div class="bg-blue-100 p-2 rounded-full mr-4">
+                        <i class="fas fa-bell text-blue-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-gray-800">Appointment Reminders</h4>
+                        <p class="text-sm text-gray-600">Email reminder 24 hours before appointment</p>
+                    </div>
+                </div>
+                <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm">Planned</span>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        // Appointment management functions
+        function cancelAppointment(appointmentId) {
+            if (!confirm('Are you sure you want to cancel this appointment?')) {
+                return;
+            }
+
+            fetch(`/user/appointments/${appointmentId}/cancel`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                })
+                .then(response => response.text())
+                .then(result => {
+                    if (result.startsWith('success:')) {
+                        alert('Appointment cancelled successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + result.substring(6));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while cancelling the appointment');
+                });
+        }
+
+        function rescheduleAppointment(appointmentId) {
+            const confirmReschedule = confirm('This will take you to the booking page to select a new time slot. Continue?');
+            if (confirmReschedule) {
+                window.location.href = `/user/booking?reschedule=${appointmentId}`;
+            }
+        }
+    </script>
 </body>
 
 </html>

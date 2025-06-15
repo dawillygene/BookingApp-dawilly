@@ -71,59 +71,44 @@
             <!-- Service Selection -->
             <div class="mb-8">
                 <label class="block text-sm font-medium text-gray-700 mb-3">Select Service</label>
-                <div class="grid md:grid-cols-2 gap-4">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" data-service="haircut">
+                <div class="grid md:grid-cols-2 gap-4" id="servicesGrid">
+                    <div th:each="service : ${services}" class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" th:data-service-id="${service.id}" th:data-service-name="${service.name}" th:data-service-price="${service.price}">
                         <div class="flex items-center justify-between">
                             <div>
-                                <h3 class="font-semibold text-gray-800">Hair Cut & Styling</h3>
-                                <p class="text-sm text-gray-600">Professional hair cutting and styling</p>
-                                <p class="text-lg font-bold text-blue-600 mt-2">$45</p>
+                                <h3 class="font-semibold text-gray-800" th:text="${service.name}">Service Name</h3>
+                                <p class="text-sm text-gray-600" th:text="${service.description}">Service description</p>
+                                <div class="flex items-center justify-between mt-2">
+                                    <p class="text-lg font-bold text-blue-600" th:text="'$' + ${service.price}">$0</p>
+                                    <span class="text-xs text-gray-500" th:text="${service.durationMinutes} + ' min'">0 min</span>
+                                </div>
                             </div>
                             <div class="text-blue-500">
-                                <i class="fas fa-cut text-2xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" data-service="consultation">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Medical Consultation</h3>
-                                <p class="text-sm text-gray-600">General health consultation</p>
-                                <p class="text-lg font-bold text-blue-600 mt-2">$80</p>
-                            </div>
-                            <div class="text-blue-500">
-                                <i class="fas fa-stethoscope text-2xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" data-service="dental">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Dental Cleaning</h3>
-                                <p class="text-sm text-gray-600">Professional dental cleaning</p>
-                                <p class="text-lg font-bold text-blue-600 mt-2">$120</p>
-                            </div>
-                            <div class="text-blue-500">
-                                <i class="fas fa-tooth text-2xl"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer service-option" data-service="massage">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-semibold text-gray-800">Massage Therapy</h3>
-                                <p class="text-sm text-gray-600">Relaxing therapeutic massage</p>
-                                <p class="text-lg font-bold text-blue-600 mt-2">$90</p>
-                            </div>
-                            <div class="text-blue-500">
-                                <i class="fas fa-hand-paper text-2xl"></i>
+                                <i class="fas fa-plus text-2xl"></i>
                             </div>
                         </div>
                     </div>
                 </div>
+                <input type="hidden" id="selectedServiceId" name="serviceId">
+            </div>
+
+            <!-- Provider Selection -->
+            <div class="mb-8" id="providerSection" style="display: none;">
+                <label class="block text-sm font-medium text-gray-700 mb-3">Select Provider</label>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4" id="providersGrid">
+                    <div th:each="provider : ${providers}" class="border border-gray-200 rounded-lg p-4 hover:border-blue-300 cursor-pointer provider-option" th:data-provider-id="${provider.id}" th:data-provider-name="${provider.fullName}">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800" th:text="${provider.fullName}">Provider Name</h3>
+                                <p class="text-sm text-gray-600" th:text="${provider.specialization}">Specialization</p>
+                                <p class="text-xs text-gray-500" th:text="${provider.location}">Location</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="selectedProviderId" name="providerId">
             </div>
 
             <!-- Date Selection -->
@@ -224,29 +209,50 @@
         // Initialize date picker with today's date as minimum
         document.getElementById('appointmentDate').min = new Date().toISOString().split('T')[0];
 
-        let selectedService = null;
-        let selectedTime = null;
+        let selectedServiceId = null;
+        let selectedServiceName = null;
+        let selectedServicePrice = null;
+        let selectedProviderId = null;
+        let selectedProviderName = null;
+        let selectedTimeSlotId = null;
+        let selectedDateTime = null;
 
         // Service selection
         document.querySelectorAll('.service-option').forEach(option => {
             option.addEventListener('click', function() {
-                document.querySelectorAll('.service-option').forEach(opt =>
-                    opt.classList.remove('border-blue-500', 'bg-blue-50'));
+                document.querySelectorAll('.service-option').forEach(opt => {
+                    opt.classList.remove('border-blue-500', 'bg-blue-50');
+                });
                 this.classList.add('border-blue-500', 'bg-blue-50');
-                selectedService = this.dataset.service;
+
+                selectedServiceId = this.dataset.serviceId;
+                selectedServiceName = this.dataset.serviceName;
+                selectedServicePrice = this.dataset.servicePrice;
+
+                document.getElementById('selectedServiceId').value = selectedServiceId;
+                document.getElementById('providerSection').style.display = 'block';
+
                 updateBookingSummary();
                 checkFormValidity();
             });
         });
 
-        // Time slot selection
-        document.querySelectorAll('.time-slot:not(.unavailable)').forEach(slot => {
-            slot.addEventListener('click', function() {
-                document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
-                this.classList.add('selected');
-                selectedTime = this.dataset.time;
+        // Provider selection
+        document.querySelectorAll('.provider-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.provider-option').forEach(opt => {
+                    opt.classList.remove('border-blue-500', 'bg-blue-50');
+                });
+                this.classList.add('border-blue-500', 'bg-blue-50');
+
+                selectedProviderId = this.dataset.providerId;
+                selectedProviderName = this.dataset.providerName;
+
+                document.getElementById('selectedProviderId').value = selectedProviderId;
+
                 updateBookingSummary();
                 checkFormValidity();
+                loadTimeSlots();
             });
         });
 
@@ -254,44 +260,104 @@
         document.getElementById('appointmentDate').addEventListener('change', function() {
             updateBookingSummary();
             checkFormValidity();
-            // Here you would typically fetch available time slots for the selected date
+            loadTimeSlots();
         });
+
+        // Load available time slots
+        function loadTimeSlots() {
+            const date = document.getElementById('appointmentDate').value;
+            console.log('loadTimeSlots called - Provider ID:', selectedProviderId, 'Date:', date);
+            if (!selectedProviderId || !date) return;
+
+            const timeSlotsContainer = document.getElementById('timeSlots');
+            timeSlotsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500">Loading available slots...</div>';
+
+            fetch(`/booking/available-slots?providerId=${selectedProviderId}&date=${date}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(timeSlots => {
+                    timeSlotsContainer.innerHTML = '';
+
+                    if (timeSlots.length === 0) {
+                        timeSlotsContainer.innerHTML = '<div class="col-span-full text-center text-gray-500">No available slots for this date</div>';
+                        return;
+                    }
+
+                    timeSlots.forEach(slot => {
+                        const slotDiv = document.createElement('div');
+                        slotDiv.className = 'time-slot border border-gray-300 rounded-lg p-3 text-center text-sm cursor-pointer hover:border-blue-500';
+                        slotDiv.dataset.timeSlotId = slot.id;
+                        slotDiv.dataset.startTime = slot.startTime;
+                        slotDiv.innerHTML = formatTime(slot.startTime);
+
+                        slotDiv.addEventListener('click', function() {
+                            document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+                            this.classList.add('selected');
+
+                            selectedTimeSlotId = this.dataset.timeSlotId;
+                            selectedDateTime = this.dataset.startTime;
+
+                            document.getElementById('selectedTimeSlotId').value = selectedTimeSlotId;
+
+                            updateBookingSummary();
+                            checkFormValidity();
+                        });
+
+                        timeSlotsContainer.appendChild(slotDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading time slots:', error);
+                    console.error('Provider ID:', selectedProviderId);
+                    console.error('Date:', date);
+                    timeSlotsContainer.innerHTML = `<div class="col-span-full text-center text-red-500">Error loading time slots: ${error.message}</div>`;
+                });
+        }
+
+        function formatTime(dateTimeString) {
+            const date = new Date(dateTimeString);
+            return date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
 
         function updateBookingSummary() {
             const date = document.getElementById('appointmentDate').value;
             const summaryDiv = document.getElementById('bookingSummary');
 
-            if (selectedService && selectedTime && date) {
-                summaryDiv.classList.remove('hidden');
+            if (selectedServiceName && selectedProviderName && selectedDateTime && date) {
+                summaryDiv.style.display = 'block';
 
-                // Update summary fields
-                const serviceTexts = {
-                    'haircut': 'Hair Cut & Styling - $45',
-                    'consultation': 'Medical Consultation - $80',
-                    'dental': 'Dental Cleaning - $120',
-                    'massage': 'Massage Therapy - $90'
-                };
-
-                document.getElementById('summaryService').textContent = serviceTexts[selectedService] || '';
-                document.getElementById('summaryDateTime').textContent = `${date} at ${selectedTime}`;
-
-                const prices = {
-                    'haircut': '$45',
-                    'consultation': '$80',
-                    'dental': '$120',
-                    'massage': '$90'
-                };
-                document.getElementById('summaryPrice').textContent = prices[selectedService] || '';
+                document.getElementById('summaryService').textContent = selectedServiceName;
+                document.getElementById('summaryProvider').textContent = selectedProviderName;
+                document.getElementById('summaryDate').textContent = formatDate(date);
+                document.getElementById('summaryTime').textContent = formatTime(selectedDateTime);
+                document.getElementById('summaryPrice').textContent = '$' + selectedServicePrice;
             } else {
-                summaryDiv.classList.add('hidden');
+                summaryDiv.style.display = 'none';
             }
         }
 
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
         function checkFormValidity() {
-            const date = document.getElementById('appointmentDate').value;
             const bookButton = document.getElementById('bookButton');
 
-            if (selectedService && selectedTime && date) {
+            if (selectedServiceId && selectedProviderId && selectedTimeSlotId) {
                 bookButton.disabled = false;
                 bookButton.classList.remove('bg-gray-300', 'cursor-not-allowed');
                 bookButton.classList.add('bg-blue-500', 'hover:bg-blue-600');
@@ -306,11 +372,41 @@
         document.getElementById('bookingForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            // Here you would typically send the booking data to the server
-            alert('Booking request submitted! You will receive a confirmation email shortly.');
+            if (!selectedServiceId || !selectedTimeSlotId) {
+                alert('Please select a service and time slot');
+                return;
+            }
 
-            // Redirect to dashboard
-            window.location.href = '/user/dashboard';
+            const bookButton = document.getElementById('bookButton');
+            bookButton.disabled = true;
+            bookButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Booking...';
+
+            const formData = new FormData();
+            formData.append('serviceId', selectedServiceId);
+            formData.append('timeSlotId', selectedTimeSlotId);
+            formData.append('notes', document.getElementById('notes').value);
+
+            fetch('/booking/create', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(result => {
+                    if (result.startsWith('success:')) {
+                        alert('Appointment booked successfully!');
+                        window.location.href = '/user/dashboard';
+                    } else {
+                        alert('Error: ' + result.substring(6));
+                        bookButton.disabled = false;
+                        bookButton.innerHTML = '<i class="fas fa-check mr-2"></i>Book Appointment';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while booking the appointment');
+                    bookButton.disabled = false;
+                    bookButton.innerHTML = '<i class="fas fa-check mr-2"></i>Book Appointment';
+                });
         });
     </script>
 </body>
