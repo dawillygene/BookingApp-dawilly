@@ -1,6 +1,7 @@
 package com.aggy.booking.Service;
 
 import com.aggy.booking.Model.Service;
+import com.aggy.booking.Model.ServiceProvider;
 import com.aggy.booking.Repository.ServiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -124,5 +125,80 @@ public class ServiceService {
     // Get all distinct categories
     public List<String> getAllCategories() {
         return serviceRepository.findDistinctCategories();
+    }
+    
+    // Provider-specific methods
+    
+    // Get services by provider
+    public List<Service> getServicesByProvider(ServiceProvider provider) {
+        return serviceRepository.findByProviderAndIsActiveTrueOrderByName(provider);
+    }
+    
+    // Get all services by provider (including inactive)
+    public List<Service> getAllServicesByProvider(ServiceProvider provider) {
+        return serviceRepository.findByProviderOrderByName(provider);
+    }
+    
+    // Create a service for a specific provider
+    public Service createServiceForProvider(String name, String description, String category, 
+                                          Double price, Integer durationMinutes, ServiceProvider provider) {
+        Service service = new Service();
+        service.setName(name);
+        service.setDescription(description);
+        service.setCategory(category);
+        service.setPrice(price);
+        service.setDurationMinutes(durationMinutes);
+        service.setProvider(provider);
+        service.setIsActive(true);
+        return serviceRepository.save(service);
+    }
+    
+    // Update service (only if owned by provider)
+    public Service updateServiceForProvider(Long serviceId, String name, String description, 
+                                          String category, Double price, Integer durationMinutes, 
+                                          ServiceProvider provider) {
+        Optional<Service> serviceOpt = serviceRepository.findById(serviceId);
+        if (serviceOpt.isPresent()) {
+            Service service = serviceOpt.get();
+            // Security check: ensure the service belongs to the provider
+            if (service.getProvider() != null && service.getProvider().getId().equals(provider.getId())) {
+                service.setName(name);
+                service.setDescription(description);
+                service.setCategory(category);
+                service.setPrice(price);
+                service.setDurationMinutes(durationMinutes);
+                return serviceRepository.save(service);
+            } else {
+                throw new RuntimeException("Unauthorized: Service does not belong to this provider");
+            }
+        } else {
+            throw new RuntimeException("Service not found");
+        }
+    }
+    
+    // Deactivate service (only if owned by provider)
+    public Service deactivateServiceForProvider(Long serviceId, ServiceProvider provider) {
+        Optional<Service> serviceOpt = serviceRepository.findById(serviceId);
+        if (serviceOpt.isPresent()) {
+            Service service = serviceOpt.get();
+            if (service.getProvider() != null && service.getProvider().getId().equals(provider.getId())) {
+                service.setIsActive(false);
+                return serviceRepository.save(service);
+            } else {
+                throw new RuntimeException("Unauthorized: Service does not belong to this provider");
+            }
+        } else {
+            throw new RuntimeException("Service not found");
+        }
+    }
+    
+    // Get provider services count
+    public Long getServicesCountByProvider(ServiceProvider provider) {
+        return serviceRepository.countByProvider(provider);
+    }
+    
+    // Get active provider services count
+    public Long getActiveServicesCountByProvider(ServiceProvider provider) {
+        return serviceRepository.countByProviderAndIsActiveTrue(provider);
     }
 }

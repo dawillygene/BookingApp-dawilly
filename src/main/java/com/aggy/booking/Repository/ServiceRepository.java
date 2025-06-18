@@ -1,6 +1,7 @@
 package com.aggy.booking.Repository;
 
 import com.aggy.booking.Model.Service;
+import com.aggy.booking.Model.ServiceProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -32,4 +33,21 @@ public interface ServiceRepository extends JpaRepository<Service, Long> {
     // Get all distinct categories
     @Query("SELECT DISTINCT s.category FROM Service s WHERE s.category IS NOT NULL AND s.isActive = true ORDER BY s.category")
     List<String> findDistinctCategories();
+    
+    // Provider-specific queries
+    
+    // Find active services by provider
+    List<Service> findByProviderAndIsActiveTrueOrderByName(ServiceProvider provider);
+    
+    // Find all services by provider (including inactive)
+    List<Service> findByProviderOrderByName(ServiceProvider provider);
+    
+    // Count services by provider
+    Long countByProvider(ServiceProvider provider);
+    
+    // Count active services by provider
+    Long countByProviderAndIsActiveTrue(ServiceProvider provider);
+    
+    // Find services by provider and category
+    List<Service> findByProviderAndCategoryAndIsActiveTrueOrderByName(ServiceProvider provider, String category);
 }

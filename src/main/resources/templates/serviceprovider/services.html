@@ -2,181 +2,331 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <title>Manage Services - Service Provider</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${pageTitle}">Manage Services</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .service-category-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-light">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-bold text-blue-600">AggyBooking</h1>
-                    <span class="ml-4 text-sm text-gray-500">Provider Portal</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="text-sm text-gray-700" th:text="'Welcome, ' + ${provider.fullName}">Welcome, Provider</span>
-                    <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
-                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                    </a>
-                </div>
+    <nav class="navbar navbar-expand-lg gradient-bg">
+        <div class="container">
+            <a class="navbar-brand text-white" href="/provider/dashboard">
+                <i class="fas fa-calendar-alt me-2"></i>Provider Portal
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-white" href="/provider/dashboard">
+                    <i class="fas fa-home me-1"></i>Dashboard
+                </a>
+                <a class="nav-link text-white" href="/provider/appointments">
+                    <i class="fas fa-calendar-check me-1"></i>Appointments
+                </a>
+                <a class="nav-link text-white" href="/provider/schedule">
+                    <i class="fas fa-clock me-1"></i>Schedule
+                </a>
+                <a class="nav-link text-white active" href="/provider/services">
+                    <i class="fas fa-concierge-bell me-1"></i>Services
+                </a>
+                <a class="nav-link text-white" href="/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
             </div>
         </div>
     </nav>
 
-    <div class="flex">
-        <!-- Sidebar -->
-        <div class="w-64 bg-white shadow-sm h-screen">
-            <div class="p-6">
-                <div class="space-y-2">
-                    <a href="/provider/dashboard" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
-                    </a>
-                    <a href="/provider/appointments" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-calendar-check mr-3"></i> My Appointments
-                    </a>
-                    <a href="/provider/services" class="flex items-center p-3 text-blue-600 bg-blue-50 rounded-lg">
-                        <i class="fas fa-cogs mr-3"></i> Services
-                    </a>
-                    <a href="/provider/schedule" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-clock mr-3"></i> My Schedule
-                    </a>
-                    <a href="/provider/profile" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-user mr-3"></i> Profile
-                    </a>
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="h3 text-dark mb-1">
+                            <i class="fas fa-concierge-bell text-primary me-2"></i>Manage Services
+                        </h2>
+                        <p class="text-muted">Create and manage your service offerings</p>
+                    </div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                        <i class="fas fa-plus me-2"></i>Add New Service
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="flex-1 p-8">
-            <!-- Header -->
-            <div class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-900">Available Services</h2>
-                <p class="text-gray-600 mt-2">Manage and view all available services in the system</p>
-            </div>
+        <!-- Alert Messages -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
 
-            <!-- Services Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div th:each="service : ${services}" class="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-                    <div class="p-6">
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-cut text-blue-600" th:if="${service.category == 'Beauty'}"></i>
-                                <i class="fas fa-heartbeat text-blue-600" th:if="${service.category == 'Health'}"></i>
-                                <i class="fas fa-spa text-blue-600" th:if="${service.category == 'Wellness'}"></i>
-                                <i class="fas fa-cog text-blue-600" th:unless="${service.category == 'Beauty' or service.category == 'Health' or service.category == 'Wellness'}"></i>
+        <!-- Services Grid -->
+        <div class="row" th:if="${services != null and !#lists.isEmpty(services)}">
+            <div class="col-lg-4 col-md-6 mb-4" th:each="service : ${services}">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="service-icon">
+                                <i class="fas fa-cut text-primary fs-3" th:if="${service.category == 'Beauty'}"></i>
+                                <i class="fas fa-heartbeat text-primary fs-3" th:if="${service.category == 'Health'}"></i>
+                                <i class="fas fa-spa text-primary fs-3" th:if="${service.category == 'Wellness'}"></i>
+                                <i class="fas fa-cog text-primary fs-3" th:unless="${service.category == 'Beauty' or service.category == 'Health' or service.category == 'Wellness'}"></i>
                             </div>
-                            <span class="px-3 py-1 text-xs font-medium rounded-full" th:classappend="${service.isActive} ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'" th:text="${service.isActive} ? 'Active' : 'Inactive'">Status</span>
+                            <span class="badge service-category-badge" 
+                                  th:classappend="${service.isActive} ? 'bg-success' : 'bg-secondary'" 
+                                  th:text="${service.isActive} ? 'Active' : 'Inactive'">Status</span>
                         </div>
 
-                        <h3 class="text-xl font-bold text-gray-900 mb-2" th:text="${service.name}">Service Name</h3>
-                        <p class="text-gray-600 text-sm mb-4 line-clamp-3" th:text="${service.description}">Service description...</p>
+                        <h5 class="card-title" th:text="${service.name}">Service Name</h5>
+                        <p class="card-text text-muted small" th:text="${service.description}">Service description...</p>
 
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center text-blue-600">
-                                <i class="fas fa-dollar-sign mr-1"></i>
-                                <span class="text-2xl font-bold" th:text="${service.price}">0.00</span>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center text-primary">
+                                    <i class="fas fa-dollar-sign me-1"></i>
+                                    <span class="h5 mb-0" th:text="${service.price}">0.00</span>
+                                </div>
                             </div>
-                            <div class="flex items-center text-gray-500">
-                                <i class="fas fa-clock mr-1"></i>
-                                <span class="text-sm" th:text="${service.durationMinutes} + ' min'">0 min</span>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    <small th:text="${service.durationMinutes} + ' min'">0 min</small>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded-full" th:text="${service.category}">Category</span>
-                            <div class="flex space-x-2">
-                                <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
-                                    <i class="fas fa-eye"></i>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-light text-dark service-category-badge" th:text="${service.category}">Category</span>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-primary btn-sm" 
+                                        data-bs-toggle="modal" data-bs-target="#editServiceModal"
+                                        th:onclick="'editService(' + ${service.id} + ', \'' + ${service.name} + '\', \'' + ${service.description} + '\', \'' + ${service.category} + '\', ' + ${service.price} + ', ' + ${service.durationMinutes} + ', ' + ${service.isActive} + ')'"
+                                        title="Edit Service">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                        th:onclick="'deleteService(' + ${service.id} + ', \'' + ${service.name} + '\')'"
+                                        title="Delete Service">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Empty State -->
-            <div th:if="${#lists.isEmpty(services)}" class="text-center py-16">
-                <i class="fas fa-cogs text-gray-300 text-6xl mb-4"></i>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">No Services Available</h3>
-                <p class="text-gray-600">There are currently no services in the system.</p>
+        <!-- Empty State -->
+        <div th:if="${services == null or #lists.isEmpty(services)}" class="text-center py-5">
+            <i class="fas fa-concierge-bell text-muted" style="font-size: 4rem;"></i>
+            <h4 class="text-muted mt-3">No Services Available</h4>
+            <p class="text-muted">Start by creating your first service offering.</p>
+            <button class="btn btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#addServiceModal">
+                <i class="fas fa-plus me-2"></i>Create Your First Service
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Service Modal -->
+    <div class="modal fade" id="addServiceModal" tabindex="-1" aria-labelledby="addServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="/provider/services/create" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addServiceModalLabel">
+                            <i class="fas fa-plus me-2"></i>Add New Service
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="serviceName" class="form-label">Service Name *</label>
+                            <input type="text" class="form-control" id="serviceName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="serviceDescription" class="form-label">Description *</label>
+                            <textarea class="form-control" id="serviceDescription" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="serviceCategory" class="form-label">Category *</label>
+                                <select class="form-select" id="serviceCategory" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Beauty">Beauty</option>
+                                    <option value="Health">Health</option>
+                                    <option value="Wellness">Wellness</option>
+                                    <option value="Fitness">Fitness</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="servicePrice" class="form-label">Price ($) *</label>
+                                <input type="number" class="form-control" id="servicePrice" name="price" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="serviceDuration" class="form-label">Duration (minutes) *</label>
+                                <input type="number" class="form-control" id="serviceDuration" name="durationMinutes" min="1" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="serviceActive" name="isActive" checked>
+                                    <label class="form-check-label" for="serviceActive">
+                                        Active (Available for booking)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Create Service
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Service Details Modal -->
-    <div id="serviceModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div class="mt-3">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Service Details</h3>
-                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times"></i>
-                    </button>
+    <!-- Edit Service Modal -->
+    <div class="modal fade" id="editServiceModal" tabindex="-1" aria-labelledby="editServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="editServiceForm" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editServiceModalLabel">
+                            <i class="fas fa-edit me-2"></i>Edit Service
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editServiceName" class="form-label">Service Name *</label>
+                            <input type="text" class="form-control" id="editServiceName" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editServiceDescription" class="form-label">Description *</label>
+                            <textarea class="form-control" id="editServiceDescription" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editServiceCategory" class="form-label">Category *</label>
+                                <select class="form-select" id="editServiceCategory" name="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Beauty">Beauty</option>
+                                    <option value="Health">Health</option>
+                                    <option value="Wellness">Wellness</option>
+                                    <option value="Fitness">Fitness</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editServicePrice" class="form-label">Price ($) *</label>
+                                <input type="number" class="form-control" id="editServicePrice" name="price" step="0.01" min="0" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editServiceDuration" class="form-label">Duration (minutes) *</label>
+                                <input type="number" class="form-control" id="editServiceDuration" name="durationMinutes" min="1" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="editServiceActive" name="isActive">
+                                    <label class="form-check-label" for="editServiceActive">
+                                        Active (Available for booking)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Update Service
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteServiceModal" tabindex="-1" aria-labelledby="deleteServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteServiceModalLabel">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>Confirm Delete
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div id="modalContent">
-                    <!-- Content will be populated by JavaScript -->
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the service "<span id="deleteServiceName"></span>"?</p>
+                    <p class="text-danger small"><i class="fas fa-warning me-1"></i>This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteServiceForm" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i>Delete Service
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        function showServiceDetails(serviceData) {
-            const modal = document.getElementById('serviceModal');
-            const content = document.getElementById('modalContent');
-
-            content.innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Service Name</label>
-                        <p class="mt-1 text-sm text-gray-900">${serviceData.name}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Description</label>
-                        <p class="mt-1 text-sm text-gray-900">${serviceData.description}</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Price</label>
-                            <p class="mt-1 text-sm text-gray-900">$${serviceData.price}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Duration</label>
-                            <p class="mt-1 text-sm text-gray-900">${serviceData.durationMinutes} minutes</p>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Category</label>
-                        <p class="mt-1 text-sm text-gray-900">${serviceData.category}</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Status</label>
-                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${serviceData.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
-                            ${serviceData.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                    </div>
-                </div>
-            `;
-
-            modal.classList.remove('hidden');
+        function editService(id, name, description, category, price, duration, isActive) {
+            document.getElementById('editServiceForm').action = '/provider/services/edit/' + id;
+            document.getElementById('editServiceName').value = name;
+            document.getElementById('editServiceDescription').value = description;
+            document.getElementById('editServiceCategory').value = category;
+            document.getElementById('editServicePrice').value = price;
+            document.getElementById('editServiceDuration').value = duration;
+            document.getElementById('editServiceActive').checked = isActive;
         }
 
-        function closeModal() {
-            document.getElementById('serviceModal').classList.add('hidden');
+        function deleteService(id, name) {
+            document.getElementById('deleteServiceName').textContent = name;
+            document.getElementById('deleteServiceForm').action = '/provider/services/delete/' + id;
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteServiceModal'));
+            deleteModal.show();
         }
-
-        // Close modal when clicking outside
-        document.getElementById('serviceModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
     </script>
 </body>
 

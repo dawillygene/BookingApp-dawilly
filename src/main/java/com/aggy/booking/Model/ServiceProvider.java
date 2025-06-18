@@ -48,6 +48,9 @@ public class ServiceProvider {
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Appointment> appointments;
     
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Service> services;
+    
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -169,6 +172,14 @@ public class ServiceProvider {
     
     public void setAppointments(List<Appointment> appointments) {
         this.appointments = appointments;
+    }
+    
+    public List<Service> getServices() {
+        return services;
+    }
+    
+    public void setServices(List<Service> services) {
+        this.services = services;
     }
     
     public User getUser() {

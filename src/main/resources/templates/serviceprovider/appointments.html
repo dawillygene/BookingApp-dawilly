@@ -126,10 +126,10 @@
         <div class="row" id="todaySection">
             <div class="col-12">
                 <h4 class="mb-3"><i class="fas fa-calendar-day"></i> Today's Appointments</h4>
-                <div th:if="${todayAppointments.isEmpty()}" class="alert alert-info">
+                <div th:if="${todayAppointments == null || todayAppointments.isEmpty()}" class="alert alert-info">
                     <i class="fas fa-info-circle"></i> No appointments scheduled for today.
                 </div>
-                <div th:if="${!todayAppointments.isEmpty()}" class="row">
+                <div th:if="${todayAppointments != null && !todayAppointments.isEmpty()}" class="row">
                     <div class="col-md-6 col-lg-4 mb-3" th:each="appointment : ${todayAppointments}">
                         <div class="card appointment-card h-100">
                             <div class="card-body">
@@ -178,10 +178,10 @@
         <div class="row mt-4" id="upcomingSection">
             <div class="col-12">
                 <h4 class="mb-3"><i class="fas fa-calendar-plus"></i> Upcoming Appointments</h4>
-                <div th:if="${upcomingAppointments.isEmpty()}" class="alert alert-info">
+                <div th:if="${upcomingAppointments == null || upcomingAppointments.isEmpty()}" class="alert alert-info">
                     <i class="fas fa-info-circle"></i> No upcoming appointments scheduled.
                 </div>
-                <div th:if="${!upcomingAppointments.isEmpty()}" class="row">
+                <div th:if="${upcomingAppointments != null && !upcomingAppointments.isEmpty()}" class="row">
                     <div class="col-md-6 col-lg-4 mb-3" th:each="appointment : ${upcomingAppointments}">
                         <div class="card appointment-card h-100">
                             <div class="card-body">
@@ -231,10 +231,10 @@
         <div class="row mt-4" id="allSection" style="display: none;">
             <div class="col-12">
                 <h4 class="mb-3"><i class="fas fa-calendar"></i> All Appointments</h4>
-                <div th:if="${allAppointments.isEmpty()}" class="alert alert-info">
+                <div th:if="${allAppointments == null or allAppointments.isEmpty()}" class="alert alert-info">
                     <i class="fas fa-info-circle"></i> No appointments found.
                 </div>
-                <div th:if="${!allAppointments.isEmpty()}" class="row">
+                <div th:if="${allAppointments != null and !allAppointments.isEmpty()}" class="row">
                     <div class="col-md-6 col-lg-4 mb-3" th:each="appointment : ${allAppointments}">
                         <div class="card appointment-card h-100">
                             <div class="card-body">

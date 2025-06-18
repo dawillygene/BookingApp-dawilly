@@ -39,6 +39,10 @@ public class Service {
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Appointment> appointments;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "provider_id")
+    private ServiceProvider provider;
+    
     // Constructors
     public Service() {
         this.createdAt = LocalDateTime.now();
@@ -51,6 +55,11 @@ public class Service {
         this.description = description;
         this.price = price;
         this.durationMinutes = durationMinutes;
+    }
+    
+    public Service(String name, String description, Double price, Integer durationMinutes, ServiceProvider provider) {
+        this(name, description, price, durationMinutes);
+        this.provider = provider;
     }
     
     // Getters and Setters
@@ -132,6 +141,14 @@ public class Service {
     
     public void setAppointments(List<Appointment> appointments) {
         this.appointments = appointments;
+    }
+    
+    public ServiceProvider getProvider() {
+        return provider;
+    }
+    
+    public void setProvider(ServiceProvider provider) {
+        this.provider = provider;
     }
     
     // Helper methods

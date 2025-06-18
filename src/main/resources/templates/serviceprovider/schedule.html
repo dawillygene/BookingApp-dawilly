@@ -109,8 +109,10 @@
                                                 </td>
                                                 <td>
                                                     <div class="btn-group" role="group">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTimeSlotModal" th:data-slot-id="${slot.id}" th:data-start-time="${#temporals.format(slot.startTime, 'yyyy-MM-dd\'T\'HH:mm')}" th:data-end-time="${#temporals.format(slot.endTime, 'yyyy-MM-dd\'T\'HH:mm')}"
-                                                            th:data-service-id="${slot.service.id}">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTimeSlotModal" 
+                                                            th:data-slot-id="${slot.id}" 
+                                                            th:data-start-time="${#temporals.format(slot.startTime, 'yyyy-MM-dd\'T\'HH:mm')}" 
+                                                            th:data-end-time="${#temporals.format(slot.endTime, 'yyyy-MM-dd\'T\'HH:mm')}">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
                                                         <form th:action="@{/provider/schedule/delete/{id}(id=${slot.id})}" method="post" class="d-inline">
@@ -143,15 +145,6 @@
                 <form th:action="@{/provider/schedule/add}" method="post">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="serviceId" class="form-label">Service</label>
-                            <select class="form-select" id="serviceId" name="serviceId" required>
-                                <option value="">Select a service</option>
-                                <option th:each="service : ${services}" 
-                                        th:value="${service.id}" 
-                                        th:text="${service.name}"></option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
                             <label for="startTime" class="form-label">Start Time</label>
                             <input type="datetime-local" class="form-control" id="startTime" name="startTime" required>
                         </div>
@@ -180,15 +173,6 @@
                 <form id="editTimeSlotForm" method="post">
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="editServiceId" class="form-label">Service</label>
-                            <select class="form-select" id="editServiceId" name="serviceId" required>
-                                <option value="">Select a service</option>
-                                <option th:each="service : ${services}" 
-                                        th:value="${service.id}" 
-                                        th:text="${service.name}"></option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
                             <label for="editStartTime" class="form-label">Start Time</label>
                             <input type="datetime-local" class="form-control" id="editStartTime" name="startTime" required>
                         </div>
@@ -214,14 +198,13 @@
             const slotId = button.getAttribute('data-slot-id');
             const startTime = button.getAttribute('data-start-time');
             const endTime = button.getAttribute('data-end-time');
-            const serviceId = button.getAttribute('data-service-id');
 
             const form = document.getElementById('editTimeSlotForm');
             form.action = '/provider/schedule/edit/' + slotId;
 
             document.getElementById('editStartTime').value = startTime;
             document.getElementById('editEndTime').value = endTime;
-            document.getElementById('editServiceId').value = serviceId;
+            // Don't set service ID since TimeSlot doesn't have a direct service relationship
         });
     </script>
 </body>

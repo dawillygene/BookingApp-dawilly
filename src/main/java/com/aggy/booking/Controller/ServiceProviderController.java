@@ -54,20 +54,98 @@ public class ServiceProviderController {
             return "redirect:/login";
         }
 
-        // Dashboard statistics
+        // Basic appointment data
         List<Appointment> todayAppointments = appointmentService.getTodayAppointmentsByProvider(provider);
         List<Appointment> upcomingAppointments = appointmentService.getUpcomingAppointmentsByProvider(provider);
         List<Appointment> allAppointments = appointmentService.getAppointmentsByProvider(provider);
-
+        
+        // Enhanced analytics
+        Map<String, Object> analytics = calculateProviderAnalytics(provider, allAppointments);
+        
+        // Service statistics
+        List<Service> providerServices = serviceService.getAllServicesByProvider(provider);
+        Long activeServicesCount = serviceService.getActiveServicesCountByProvider(provider);
+        
+        // Recent activity (last 7 days)
+        List<Appointment> recentAppointments = getRecentAppointments(allAppointments, 7);
+        
         model.addAttribute("provider", provider);
         model.addAttribute("todayAppointments", todayAppointments);
         model.addAttribute("upcomingAppointments", upcomingAppointments);
         model.addAttribute("totalAppointments", allAppointments.size());
         model.addAttribute("todayCount", todayAppointments.size());
         model.addAttribute("upcomingCount", upcomingAppointments.size());
+        model.addAttribute("analytics", analytics);
+        model.addAttribute("services", providerServices);
+        model.addAttribute("activeServicesCount", activeServicesCount);
+        model.addAttribute("recentAppointments", recentAppointments);
         model.addAttribute("pageTitle", "Provider Dashboard");
 
         return "serviceprovider/dashboard";
+    }
+
+    private Map<String, Object> calculateProviderAnalytics(ServiceProvider provider, List<Appointment> allAppointments) {
+        Map<String, Object> analytics = new HashMap<>();
+        
+        // Status breakdown
+        long completedCount = allAppointments.stream().filter(a -> a.getStatus() == AppointmentStatus.COMPLETED).count();
+        long pendingCount = allAppointments.stream().filter(a -> a.getStatus() == AppointmentStatus.PENDING).count();
+        long confirmedCount = allAppointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CONFIRMED).count();
+        long cancelledCount = allAppointments.stream().filter(a -> a.getStatus() == AppointmentStatus.CANCELLED).count();
+        
+        analytics.put("completedCount", completedCount);
+        analytics.put("pendingCount", pendingCount);
+        analytics.put("confirmedCount", confirmedCount);
+        analytics.put("cancelledCount", cancelledCount);
+        
+        // Completion rate
+        double completionRate = allAppointments.size() > 0 ? 
+            (double) completedCount / allAppointments.size() * 100 : 0.0;
+        analytics.put("completionRate", Math.round(completionRate * 100.0) / 100.0);
+        
+        // Revenue calculations (if price data is available)
+        double totalRevenue = allAppointments.stream()
+            .filter(a -> a.getStatus() == AppointmentStatus.COMPLETED && a.getService() != null)
+            .mapToDouble(a -> a.getService().getPrice())
+            .sum();
+        analytics.put("totalRevenue", totalRevenue);
+        
+        // This month's data
+        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        long thisMonthAppointments = allAppointments.stream()
+            .filter(a -> a.getAppointmentDateTime().isAfter(startOfMonth))
+            .count();
+        double thisMonthRevenue = allAppointments.stream()
+            .filter(a -> a.getAppointmentDateTime().isAfter(startOfMonth) && 
+                        a.getStatus() == AppointmentStatus.COMPLETED && 
+                        a.getService() != null)
+            .mapToDouble(a -> a.getService().getPrice())
+            .sum();
+        analytics.put("thisMonthAppointments", thisMonthAppointments);
+        analytics.put("thisMonthRevenue", thisMonthRevenue);
+        
+        // Average appointment value
+        double avgAppointmentValue = completedCount > 0 ? totalRevenue / completedCount : 0.0;
+        analytics.put("avgAppointmentValue", Math.round(avgAppointmentValue * 100.0) / 100.0);
+        
+        // Busiest day of week analysis
+        Map<String, Long> dayOfWeekStats = allAppointments.stream()
+            .collect(java.util.stream.Collectors.groupingBy(
+                a -> a.getAppointmentDateTime().getDayOfWeek().toString(),
+                java.util.stream.Collectors.counting()
+            ));
+        analytics.put("dayOfWeekStats", dayOfWeekStats);
+        
+        return analytics;
+    }
+    
+    private List<Appointment> getRecentAppointments(List<Appointment> allAppointments, int days) {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(days);
+        return allAppointments.stream()
+            .filter(a -> a.getAppointmentDateTime().isAfter(cutoffDate))
+            .sorted((a1, a2) -> a2.getAppointmentDateTime().compareTo(a1.getAppointmentDateTime()))
+            .limit(10)
+            .collect(java.util.stream.Collectors.toList());
     }
 
     @GetMapping("/services")
@@ -77,9 +155,9 @@ public class ServiceProviderController {
             return "redirect:/login";
         }
 
-        List<Service> allServices = serviceService.getActiveServices();
+        List<Service> providerServices = serviceService.getAllServicesByProvider(provider);
         model.addAttribute("provider", provider);
-        model.addAttribute("services", allServices);
+        model.addAttribute("services", providerServices);
         model.addAttribute("pageTitle", "Manage Services");
 
         return "serviceprovider/services";
@@ -94,11 +172,14 @@ public class ServiceProviderController {
 
         List<Appointment> allAppointments = appointmentService.getAppointmentsByProvider(provider);
         List<Appointment> todayAppointments = appointmentService.getTodayAppointmentsByProvider(provider);
-        List<Service> services = serviceService.getActiveServices();
+        List<Appointment> upcomingAppointments = appointmentService.getUpcomingAppointmentsByProvider(provider);
+        List<Service> services = serviceService.getAllServicesByProvider(provider);
         
         model.addAttribute("provider", provider);
         model.addAttribute("appointments", allAppointments);
+        model.addAttribute("allAppointments", allAppointments);
         model.addAttribute("todayAppointments", todayAppointments);
+        model.addAttribute("upcomingAppointments", upcomingAppointments);
         model.addAttribute("services", services);
         model.addAttribute("pageTitle", "My Appointments");
 
@@ -113,7 +194,7 @@ public class ServiceProviderController {
         }
 
         List<TimeSlot> timeSlots = timeSlotService.getTimeSlotsByProvider(provider);
-        List<Service> services = serviceService.getActiveServices();
+        List<Service> services = serviceService.getServicesByProvider(provider);
         
         model.addAttribute("provider", provider);
         model.addAttribute("timeSlots", timeSlots);
@@ -124,8 +205,7 @@ public class ServiceProviderController {
     }
 
     @PostMapping("/schedule/add")
-    public String addTimeSlot(@RequestParam Long serviceId,
-                              @RequestParam String startTime,
+    public String addTimeSlot(@RequestParam String startTime,
                               @RequestParam String endTime,
                               RedirectAttributes redirectAttributes) {
         ServiceProvider provider = getCurrentServiceProvider();
@@ -134,19 +214,14 @@ public class ServiceProviderController {
         }
 
         try {
-            Optional<Service> serviceOpt = serviceService.getServiceById(serviceId);
-            if (serviceOpt.isPresent()) {
-                TimeSlot timeSlot = new TimeSlot();
-                timeSlot.setProvider(provider);
-                timeSlot.setStartTime(LocalDateTime.parse(startTime));
-                timeSlot.setEndTime(LocalDateTime.parse(endTime));
-                timeSlot.setIsAvailable(true);
+            TimeSlot timeSlot = new TimeSlot();
+            timeSlot.setProvider(provider);
+            timeSlot.setStartTime(LocalDateTime.parse(startTime));
+            timeSlot.setEndTime(LocalDateTime.parse(endTime));
+            timeSlot.setIsAvailable(true);
 
-                timeSlotService.save(timeSlot);
-                redirectAttributes.addFlashAttribute("message", "Time slot added successfully");
-            } else {
-                redirectAttributes.addFlashAttribute("error", "Service not found");
-            }
+            timeSlotService.save(timeSlot);
+            redirectAttributes.addFlashAttribute("message", "Time slot added successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error adding time slot: " + e.getMessage());
         }
@@ -156,7 +231,6 @@ public class ServiceProviderController {
 
     @PostMapping("/schedule/edit/{id}")
     public String editTimeSlot(@PathVariable Long id,
-                               @RequestParam Long serviceId,
                                @RequestParam String startTime,
                                @RequestParam String endTime,
                                RedirectAttributes redirectAttributes) {
@@ -167,9 +241,8 @@ public class ServiceProviderController {
 
         try {
             Optional<TimeSlot> timeSlotOpt = timeSlotService.findById(id);
-            Optional<Service> serviceOpt = serviceService.getServiceById(serviceId);
             
-            if (timeSlotOpt.isPresent() && serviceOpt.isPresent()) {
+            if (timeSlotOpt.isPresent()) {
                 TimeSlot timeSlot = timeSlotOpt.get();
                 
                 // Verify the time slot belongs to this provider
@@ -184,7 +257,7 @@ public class ServiceProviderController {
                 timeSlotService.save(timeSlot);
                 redirectAttributes.addFlashAttribute("message", "Time slot updated successfully");
             } else {
-                redirectAttributes.addFlashAttribute("error", "Time slot or service not found");
+                redirectAttributes.addFlashAttribute("error", "Time slot not found");
             }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error updating time slot: " + e.getMessage());
@@ -333,5 +406,87 @@ public class ServiceProviderController {
         }
 
         return "redirect:/provider/profile";
+    }
+
+    @PostMapping("/services/create")
+    public String createService(@RequestParam String name,
+                              @RequestParam String description,
+                              @RequestParam String category,
+                              @RequestParam Double price,
+                              @RequestParam Integer durationMinutes,
+                              @RequestParam(defaultValue = "false") Boolean isActive,
+                              RedirectAttributes redirectAttributes) {
+        ServiceProvider provider = getCurrentServiceProvider();
+        if (provider == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            Service service = serviceService.createServiceForProvider(
+                name, description, category, price, durationMinutes, provider);
+            
+            if (isActive != null && isActive) {
+                service.setIsActive(true);
+            }
+            
+            redirectAttributes.addFlashAttribute("message", "Service created successfully: " + name);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error creating service: " + e.getMessage());
+        }
+
+        return "redirect:/provider/services";
+    }
+
+    @PostMapping("/services/edit/{id}")
+    public String editService(@PathVariable Long id,
+                            @RequestParam String name,
+                            @RequestParam String description,
+                            @RequestParam String category,
+                            @RequestParam Double price,
+                            @RequestParam Integer durationMinutes,
+                            @RequestParam(defaultValue = "false") Boolean isActive,
+                            RedirectAttributes redirectAttributes) {
+        ServiceProvider provider = getCurrentServiceProvider();
+        if (provider == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            serviceService.updateServiceForProvider(
+                id, name, description, category, price, durationMinutes, provider);
+            
+            redirectAttributes.addFlashAttribute("message", "Service updated successfully: " + name);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating service: " + e.getMessage());
+        }
+
+        return "redirect:/provider/services";
+    }
+
+    @PostMapping("/services/delete/{id}")
+    public String deleteService(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        ServiceProvider provider = getCurrentServiceProvider();
+        if (provider == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            Optional<Service> serviceOpt = serviceService.getServiceById(id);
+            if (serviceOpt.isPresent()) {
+                Service service = serviceOpt.get();
+                if (service.getProvider() != null && service.getProvider().getId().equals(provider.getId())) {
+                    serviceService.deleteService(id);
+                    redirectAttributes.addFlashAttribute("message", "Service deleted successfully");
+                } else {
+                    redirectAttributes.addFlashAttribute("error", "Unauthorized: Service does not belong to you");
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Service not found");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting service: " + e.getMessage());
+        }
+
+        return "redirect:/provider/services";
     }
 }
