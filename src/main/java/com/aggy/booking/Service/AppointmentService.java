@@ -196,6 +196,31 @@ public class AppointmentService {
         return appointmentRepository.countByStatus(status);
     }
     
+    // Get appointments by provider
+    public List<Appointment> getAppointmentsByProvider(ServiceProvider provider) {
+        return appointmentRepository.findByProviderOrderByAppointmentDateTimeDesc(provider);
+    }
+    
+    // Get today's appointments for a provider
+    public List<Appointment> getTodayAppointmentsByProvider(ServiceProvider provider) {
+        LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        return appointmentRepository.findByProviderAndAppointmentDateTimeBetweenOrderByAppointmentDateTime(
+            provider, startOfDay, endOfDay);
+    }
+    
+    public List<Appointment> getUpcomingAppointmentsByProvider(ServiceProvider provider) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nextWeek = now.plusDays(7);
+        return appointmentRepository.findByProviderAndAppointmentDateTimeBetweenAndStatusInOrderByAppointmentDateTime(
+            provider, now, nextWeek, Arrays.asList(AppointmentStatus.CONFIRMED, AppointmentStatus.PENDING));
+    }
+
+    // Update an appointment
+    public Appointment updateAppointment(Appointment appointment) {
+        return appointmentRepository.save(appointment);
+    }
+    
     // Inner class for appointment statistics
     public static class AppointmentStats {
         private Long totalCount = 0L;

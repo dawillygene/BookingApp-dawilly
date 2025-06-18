@@ -124,4 +124,19 @@ public class TimeSlotService {
             throw new RuntimeException("Time slot not found");
         }
     }
+    
+    // Get all time slots for a provider
+    public List<TimeSlot> getTimeSlotsByProvider(ServiceProvider provider) {
+        return timeSlotRepository.findByProviderOrderByStartTime(provider);
+    }
+    
+    // Save a time slot
+    public TimeSlot save(TimeSlot timeSlot) {
+        return timeSlotRepository.save(timeSlot);
+    }
+    
+    // Find by ID
+    public Optional<TimeSlot> findById(Long id) {
+        return timeSlotRepository.findById(id);
+    }
 }

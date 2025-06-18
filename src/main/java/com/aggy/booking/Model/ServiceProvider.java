@@ -36,6 +36,9 @@ public class ServiceProvider {
     @Column(name = "location")
     private String location;
     
+    @Column(name = "address", columnDefinition = "TEXT")
+    private String address;
+    
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
     
@@ -44,6 +47,10 @@ public class ServiceProvider {
     
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Appointment> appointments;
+    
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
     
     // Constructors
     public ServiceProvider() {
@@ -132,6 +139,14 @@ public class ServiceProvider {
         this.location = location;
     }
     
+    public String getAddress() {
+        return address;
+    }
+    
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -154,6 +169,14 @@ public class ServiceProvider {
     
     public void setAppointments(List<Appointment> appointments) {
         this.appointments = appointments;
+    }
+    
+    public User getUser() {
+        return user;
+    }
+    
+    public void setUser(User user) {
+        this.user = user;
     }
     
     // Helper methods

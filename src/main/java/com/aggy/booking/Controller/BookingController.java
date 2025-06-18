@@ -61,22 +61,16 @@ public class BookingController {
     @ResponseBody
     public List<TimeSlot> getAvailableSlots(@RequestParam Long providerId,
             @RequestParam String date) {
-        System.out.println("getAvailableSlots called with providerId: " + providerId + ", date: " + date);
         try {
             Optional<ServiceProvider> providerOpt = serviceProviderService.getServiceProviderById(providerId);
-            System.out.println("Provider found: " + providerOpt.isPresent());
 
             if (providerOpt.isPresent()) {
                 LocalDate localDate = LocalDate.parse(date);
                 List<TimeSlot> slots = timeSlotService.getAvailableTimeSlots(providerOpt.get(), localDate);
-                System.out.println("Found " + slots.size() + " available slots");
                 return slots;
             }
-            System.out.println("Provider not found, returning empty list");
             return java.util.Collections.emptyList();
         } catch (Exception e) {
-            System.out.println("Exception in getAvailableSlots: " + e.getMessage());
-            e.printStackTrace();
             return java.util.Collections.emptyList();
         }
     }

@@ -46,6 +46,9 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
     // Find time slots by provider
     List<TimeSlot> findByProviderOrderByStartTimeAsc(ServiceProvider provider);
     
+    // Find time slots by provider ordered by start time
+    List<TimeSlot> findByProviderOrderByStartTime(ServiceProvider provider);
+
     // Count available time slots for today
     @Query("SELECT COUNT(ts) FROM TimeSlot ts WHERE ts.isAvailable = true AND DATE(ts.startTime) = DATE(:today)")
     Long countAvailableForToday(@Param("today") LocalDateTime today);

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -127,5 +128,16 @@ public class ServiceProviderService {
     // Get all distinct locations
     public List<String> getAllLocations() {
         return serviceProviderRepository.findDistinctLocations();
+    }
+    
+    // Find service provider by email
+    public ServiceProvider findByEmail(String email) {
+        return serviceProviderRepository.findByEmail(email);
+    }
+    
+    // Save service provider
+    public ServiceProvider saveServiceProvider(ServiceProvider provider) {
+        provider.setUpdatedAt(LocalDateTime.now());
+        return serviceProviderRepository.save(provider);
     }
 }

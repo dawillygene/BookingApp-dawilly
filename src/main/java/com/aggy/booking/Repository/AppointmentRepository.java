@@ -3,6 +3,7 @@ package com.aggy.booking.Repository;
 import com.aggy.booking.Model.Appointment;
 import com.aggy.booking.Model.AppointmentStatus;
 import com.aggy.booking.Model.User;
+import com.aggy.booking.Model.ServiceProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -53,4 +54,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     // Find appointments by service provider
     @Query("SELECT a FROM Appointment a WHERE a.provider.id = :providerId ORDER BY a.appointmentDateTime DESC")
     List<Appointment> findByProviderId(@Param("providerId") Long providerId);
+    
+    // Find appointments by provider
+    List<Appointment> findByProviderOrderByAppointmentDateTimeDesc(ServiceProvider provider);
+    
+    // Find appointments by provider and date range
+    List<Appointment> findByProviderAndAppointmentDateTimeBetweenOrderByAppointmentDateTime(
+        ServiceProvider provider, LocalDateTime start, LocalDateTime end);
+    
+    // Find appointments by provider, date range and status
+    List<Appointment> findByProviderAndAppointmentDateTimeBetweenAndStatusInOrderByAppointmentDateTime(
+        ServiceProvider provider, LocalDateTime start, LocalDateTime end, List<AppointmentStatus> statuses);
 }

@@ -34,4 +34,7 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
     
     // Count active providers
     Long countByIsActiveTrue();
+
+    // Find provider by email
+    ServiceProvider findByEmail(String email);
 }

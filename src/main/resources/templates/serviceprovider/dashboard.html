@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Provider Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">AggyBooking</h1>
+                    <span class="ml-4 text-sm text-gray-500">Provider Portal</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-700" th:text="'Welcome, ' + ${provider.fullName}">Welcome, Provider</span>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white shadow-sm h-screen">
+            <div class="p-6">
+                <div class="space-y-2">
+                    <a href="/provider/dashboard" class="flex items-center p-3 text-blue-600 bg-blue-50 rounded-lg">
+                        <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+                    </a>
+                    <a href="/provider/appointments" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-calendar-check mr-3"></i> My Appointments
+                    </a>
+                    <a href="/provider/services" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-cogs mr-3"></i> Services
+                    </a>
+                    <a href="/provider/schedule" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-clock mr-3"></i> My Schedule
+                    </a>
+                    <a href="/provider/profile" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-user mr-3"></i> Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-8">
+            <!-- Header -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Dashboard</h2>
+                <p class="text-gray-600 mt-2">Overview of your appointments and activities</p>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calendar-day text-blue-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Today's Appointments</p>
+                            <p class="text-2xl font-semibold text-gray-900" th:text="${todayCount}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calendar-week text-green-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Upcoming (7 days)</p>
+                            <p class="text-2xl font-semibold text-gray-900" th:text="${upcomingCount}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-calendar-alt text-purple-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Total Appointments</p>
+                            <p class="text-2xl font-semibold text-gray-900" th:text="${totalAppointments}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-sm border">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <div class="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-star text-yellow-600"></i>
+                            </div>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500">Specialization</p>
+                            <p class="text-sm font-semibold text-gray-900" th:text="${provider.specialization}">General</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Today's Appointments -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="p-6 border-b">
+                        <h3 class="text-lg font-semibold text-gray-900">Today's Appointments</h3>
+                    </div>
+                    <div class="p-6">
+                        <div th:if="${#lists.isEmpty(todayAppointments)}" class="text-center py-8">
+                            <i class="fas fa-calendar-day text-gray-300 text-4xl mb-4"></i>
+                            <p class="text-gray-500">No appointments scheduled for today</p>
+                        </div>
+                        <div th:if="${!#lists.isEmpty(todayAppointments)}" class="space-y-4">
+                            <div th:each="appointment : ${todayAppointments}" class="flex items-center justify-between p-4 border rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900" th:text="${appointment.user.firstName + ' ' + appointment.user.lastName}">Patient Name</p>
+                                        <p class="text-sm text-gray-500" th:text="${appointment.service.name}">Service</p>
+                                        <p class="text-xs text-gray-400" th:text="${appointment.formattedTime}">Time</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-3 py-1 text-xs font-medium rounded-full" th:classappend="${appointment.status.name() == 'CONFIRMED'} ? 'bg-green-100 text-green-800' : 
+                                                         (${appointment.status.name() == 'PENDING'} ? 'bg-yellow-100 text-yellow-800' : 
+                                                         (${appointment.status.name() == 'CANCELLED'} ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'))" th:text="${appointment.status.name()}">Status</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Appointments -->
+                <div class="bg-white rounded-lg shadow-sm border">
+                    <div class="p-6 border-b">
+                        <h3 class="text-lg font-semibold text-gray-900">Upcoming Appointments</h3>
+                    </div>
+                    <div class="p-6">
+                        <div th:if="${#lists.isEmpty(upcomingAppointments)}" class="text-center py-8">
+                            <i class="fas fa-calendar-week text-gray-300 text-4xl mb-4"></i>
+                            <p class="text-gray-500">No upcoming appointments</p>
+                        </div>
+                        <div th:if="${!#lists.isEmpty(upcomingAppointments)}" class="space-y-4">
+                            <div th:each="appointment : ${#lists.sort(upcomingAppointments, 'appointmentDateTime')}" class="flex items-center justify-between p-4 border rounded-lg">
+                                <div class="flex items-center space-x-4">
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                        <i class="fas fa-user text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium text-gray-900" th:text="${appointment.user.firstName + ' ' + appointment.user.lastName}">Patient Name</p>
+                                        <p class="text-sm text-gray-500" th:text="${appointment.service.name}">Service</p>
+                                        <p class="text-xs text-gray-400" th:text="${appointment.formattedDateTime}">Date & Time</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="px-3 py-1 text-xs font-medium rounded-full" th:classappend="${appointment.status.name() == 'CONFIRMED'} ? 'bg-green-100 text-green-800' : 
+                                                         (${appointment.status.name() == 'PENDING'} ? 'bg-yellow-100 text-yellow-800' : 
+                                                         (${appointment.status.name() == 'CANCELLED'} ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'))" th:text="${appointment.status.name()}">Status</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

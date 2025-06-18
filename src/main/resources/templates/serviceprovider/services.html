@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Manage Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-blue-600">AggyBooking</h1>
+                    <span class="ml-4 text-sm text-gray-500">Provider Portal</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-700" th:text="'Welcome, ' + ${provider.fullName}">Welcome, Provider</span>
+                    <a href="/logout" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white shadow-sm h-screen">
+            <div class="p-6">
+                <div class="space-y-2">
+                    <a href="/provider/dashboard" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+                    </a>
+                    <a href="/provider/appointments" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-calendar-check mr-3"></i> My Appointments
+                    </a>
+                    <a href="/provider/services" class="flex items-center p-3 text-blue-600 bg-blue-50 rounded-lg">
+                        <i class="fas fa-cogs mr-3"></i> Services
+                    </a>
+                    <a href="/provider/schedule" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-clock mr-3"></i> My Schedule
+                    </a>
+                    <a href="/provider/profile" class="flex items-center p-3 text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-user mr-3"></i> Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-8">
+            <!-- Header -->
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-gray-900">Available Services</h2>
+                <p class="text-gray-600 mt-2">Manage and view all available services in the system</p>
+            </div>
+
+            <!-- Services Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="service : ${services}" class="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-cut text-blue-600" th:if="${service.category == 'Beauty'}"></i>
+                                <i class="fas fa-heartbeat text-blue-600" th:if="${service.category == 'Health'}"></i>
+                                <i class="fas fa-spa text-blue-600" th:if="${service.category == 'Wellness'}"></i>
+                                <i class="fas fa-cog text-blue-600" th:unless="${service.category == 'Beauty' or service.category == 'Health' or service.category == 'Wellness'}"></i>
+                            </div>
+                            <span class="px-3 py-1 text-xs font-medium rounded-full" th:classappend="${service.isActive} ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'" th:text="${service.isActive} ? 'Active' : 'Inactive'">Status</span>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-gray-900 mb-2" th:text="${service.name}">Service Name</h3>
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-3" th:text="${service.description}">Service description...</p>
+
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center text-blue-600">
+                                <i class="fas fa-dollar-sign mr-1"></i>
+                                <span class="text-2xl font-bold" th:text="${service.price}">0.00</span>
+                            </div>
+                            <div class="flex items-center text-gray-500">
+                                <i class="fas fa-clock mr-1"></i>
+                                <span class="text-sm" th:text="${service.durationMinutes} + ' min'">0 min</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-gray-500 px-2 py-1 bg-gray-100 rounded-full" th:text="${service.category}">Category</span>
+                            <div class="flex space-x-2">
+                                <button class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(services)}" class="text-center py-16">
+                <i class="fas fa-cogs text-gray-300 text-6xl mb-4"></i>
+                <h3 class="text-xl font-semibold text-gray-900 mb-2">No Services Available</h3>
+                <p class="text-gray-600">There are currently no services in the system.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Details Modal -->
+    <div id="serviceModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900" id="modalTitle">Service Details</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="modalContent">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showServiceDetails(serviceData) {
+            const modal = document.getElementById('serviceModal');
+            const content = document.getElementById('modalContent');
+
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Service Name</label>
+                        <p class="mt-1 text-sm text-gray-900">${serviceData.name}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <p class="mt-1 text-sm text-gray-900">${serviceData.description}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Price</label>
+                            <p class="mt-1 text-sm text-gray-900">$${serviceData.price}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Duration</label>
+                            <p class="mt-1 text-sm text-gray-900">${serviceData.durationMinutes} minutes</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Category</label>
+                        <p class="mt-1 text-sm text-gray-900">${serviceData.category}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${serviceData.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                            ${serviceData.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('serviceModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('serviceModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+
+</html>

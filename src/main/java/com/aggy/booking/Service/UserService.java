@@ -93,4 +93,9 @@ public class UserService {
             updateUser(user);
         }
     }
+
+    public User findByUsernameOrEmail(String username, String email) {
+        Optional<User> user = userRepository.findByUsernameOrEmail(username, email);
+        return user.orElse(null);
+    }
 }
