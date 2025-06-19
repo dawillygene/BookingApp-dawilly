@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title th:text="${pageTitle + ' - Booking Web Application'}">Admin Dashboard - Booking Web Application</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .card-hover {
+            transition: transform 0.2s;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+        }
+        
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 gradient-bg text-white flex-shrink-0">
+            <div class="p-6">
+                <h1 class="text-xl font-bold">
+                    <i class="fas fa-shield-alt mr-2"></i> Admin Panel
+                </h1>
+            </div>
+
+            <nav class="mt-6">
+                <a href="/admin" class="sidebar-link flex items-center px-6 py-3" th:classappend="${currentPage == 'dashboard'} ? 'active' : ''">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span class="ml-3">Dashboard</span>
+                </a>
+                <a href="/admin/users" class="sidebar-link flex items-center px-6 py-3" th:classappend="${currentPage == 'users'} ? 'active' : ''">
+                    <i class="fas fa-users w-5"></i>
+                    <span class="ml-3">Users</span>
+                </a>
+                <a href="/admin/providers" class="sidebar-link flex items-center px-6 py-3" th:classappend="${currentPage == 'providers'} ? 'active' : ''">
+                    <i class="fas fa-user-tie w-5"></i>
+                    <span class="ml-3">Providers</span>
+                </a>
+                <a href="/admin/services" class="sidebar-link flex items-center px-6 py-3" th:classappend="${currentPage == 'services'} ? 'active' : ''">
+                    <i class="fas fa-cogs w-5"></i>
+                    <span class="ml-3">Services</span>
+                </a>
+                <a href="/admin/categories" class="sidebar-link flex items-center px-6 py-3" th:classappend="${currentPage == 'categories'} ? 'active' : ''">
+                    <i class="fas fa-tags w-5"></i>
+                    <span class="ml-3">Categories</span>
+                </a>
+                <a href="/admin/analytics" class="sidebar-link flex items-center px-6 py-3" th:classappend="${currentPage == 'analytics'} ? 'active' : ''">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span class="ml-3">Analytics</span>
+                </a>
+                <a href="/admin/reports" class="sidebar-link flex items-center px-6 py-3" th:classappend="${currentPage == 'reports'} ? 'active' : ''">
+                    <i class="fas fa-file-alt w-5"></i>
+                    <span class="ml-3">Reports</span>
+                </a>
+            </nav>
+
+            <div class="absolute bottom-6 left-6">
+                <a href="/dashboard" class="text-white/80 hover:text-white flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <span>Back to App</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800" th:text="${pageTitle}">Admin Dashboard</h2>
+                        <nav class="text-sm text-gray-600" th:if="${breadcrumb}">
+                            <span>Admin</span>
+                            <span th:if="${breadcrumb != 'Admin'}" th:text="' / ' + ${breadcrumb}"></span>
+                        </nav>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-600">Welcome, Admin</span>
+                        <a href="/logout" class="text-red-600 hover:text-red-800 transition-colors">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Success/Error Messages -->
+                <div th:if="${success}" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert">
+                    <span th:text="${success}"></span>
+                </div>
+                <div th:if="${error}" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+                    <span th:text="${error}"></span>
+                </div>
+
+                <!-- Dashboard Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Total Users -->
+                    <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Total Users</p>
+                                <p class="text-3xl font-bold text-blue-600" th:text="${totalUsers ?: '0'}">0</p>
+                                <p class="text-green-600 text-sm">Active accounts</p>
+                            </div>
+                            <div class="text-blue-500 text-3xl">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Appointments -->
+                    <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Total Appointments</p>
+                                <p class="text-3xl font-bold text-green-600" th:text="${totalAppointments ?: '0'}">0</p>
+                                <p class="text-green-600 text-sm">All time</p>
+                            </div>
+                            <div class="text-green-500 text-3xl">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Providers -->
+                    <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Active Providers</p>
+                                <p class="text-3xl font-bold text-purple-600" th:text="${activeProviders ?: '0'}">0</p>
+                                <p class="text-green-600 text-sm">Approved & active</p>
+                            </div>
+                            <div class="text-purple-500 text-3xl">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pending Providers -->
+                    <div class="bg-white p-6 rounded-xl shadow-md card-hover">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Pending Providers</p>
+                                <p class="text-3xl font-bold text-orange-600" th:text="${pendingProviders ?: '0'}">0</p>
+                                <p class="text-orange-600 text-sm">Awaiting approval</p>
+                            </div>
+                            <div class="text-orange-500 text-3xl">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions & Recent Activity -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Quick Actions -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <a href="/admin/providers?status=pending" class="flex items-center justify-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+                                <div class="text-center">
+                                    <i class="fas fa-user-check text-orange-500 text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium text-gray-700">Approve Providers</p>
+                                </div>
+                            </a>
+                            <a href="/admin/users" class="flex items-center justify-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+                                <div class="text-center">
+                                    <i class="fas fa-users-cog text-blue-500 text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium text-gray-700">Manage Users</p>
+                                </div>
+                            </a>
+                            <a href="/admin/categories" class="flex items-center justify-center p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+                                <div class="text-center">
+                                    <i class="fas fa-tags text-green-500 text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium text-gray-700">Service Categories</p>
+                                </div>
+                            </a>
+                            <a href="/admin/analytics" class="flex items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+                                <div class="text-center">
+                                    <i class="fas fa-chart-line text-purple-500 text-2xl mb-2"></i>
+                                    <p class="text-sm font-medium text-gray-700">View Analytics</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- System Health -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">System Health</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Email Notifications</span>
+                                <span class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Operational
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Database</span>
+                                <span class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Healthy
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Booking System</span>
+                                <span class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Active
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-600">Payment Processing</span>
+                                <span class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Ready
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl shadow-md">
+                    <div class="p-6 border-b">
+                        <h3 class="text-lg font-semibold text-gray-800">Recent Activity</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4" th:if="${recentActivity != null and !#lists.isEmpty(recentActivity)}">
+                            <div th:each="activity : ${recentActivity}" class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                                <div class="text-blue-500">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-800" th:text="${activity.description}">Activity description</p>
+                                    <p class="text-xs text-gray-500" th:text="${activity.timestamp}">Just now</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:unless="${recentActivity != null and !#lists.isEmpty(recentActivity)}" class="text-center py-8 text-gray-500">
+                            <i class="fas fa-history text-4xl mb-4"></i>
+                            <p>No recent activity to display</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh stats every 30 seconds
+        setTimeout(() => {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+
+</html>

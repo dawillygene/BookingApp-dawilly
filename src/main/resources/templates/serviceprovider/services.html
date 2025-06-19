@@ -122,14 +122,21 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="badge bg-light text-dark service-category-badge" th:text="${service.category}">Category</span>
                             <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-outline-primary btn-sm" 
+                                <button type="button" class="btn btn-outline-primary btn-sm edit-service-btn" 
                                         data-bs-toggle="modal" data-bs-target="#editServiceModal"
-                                        th:onclick="'editService(' + ${service.id} + ', \'' + ${service.name} + '\', \'' + ${service.description} + '\', \'' + ${service.category} + '\', ' + ${service.price} + ', ' + ${service.durationMinutes} + ', ' + ${service.isActive} + ')'"
+                                        th:data-service-id="${service.id}"
+                                        th:data-service-name="${service.name}"
+                                        th:data-service-description="${service.description}"
+                                        th:data-service-category="${service.category}"
+                                        th:data-service-price="${service.price}"
+                                        th:data-service-duration="${service.durationMinutes}"
+                                        th:data-service-active="${service.isActive}"
                                         title="Edit Service">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm" 
-                                        th:onclick="'deleteService(' + ${service.id} + ', \'' + ${service.name} + '\')'"
+                                <button type="button" class="btn btn-outline-danger btn-sm delete-service-btn" 
+                                        th:data-service-id="${service.id}"
+                                        th:data-service-name="${service.name}"
                                         title="Delete Service">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -311,6 +318,34 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Event listeners for edit and delete buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Edit service button listeners
+            document.querySelectorAll('.edit-service-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const serviceId = this.dataset.serviceId;
+                    const serviceName = this.dataset.serviceName;
+                    const serviceDescription = this.dataset.serviceDescription;
+                    const serviceCategory = this.dataset.serviceCategory;
+                    const servicePrice = this.dataset.servicePrice;
+                    const serviceDuration = this.dataset.serviceDuration;
+                    const serviceActive = this.dataset.serviceActive === 'true';
+                    
+                    editService(serviceId, serviceName, serviceDescription, serviceCategory, servicePrice, serviceDuration, serviceActive);
+                });
+            });
+            
+            // Delete service button listeners
+            document.querySelectorAll('.delete-service-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const serviceId = this.dataset.serviceId;
+                    const serviceName = this.dataset.serviceName;
+                    
+                    deleteService(serviceId, serviceName);
+                });
+            });
+        });
+
         function editService(id, name, description, category, price, duration, isActive) {
             document.getElementById('editServiceForm').action = '/provider/services/edit/' + id;
             document.getElementById('editServiceName').value = name;

@@ -1,5 +1,6 @@
 package com.aggy.booking.Controller;
 
+import com.aggy.booking.DTO.TimeSlotDTO;
 import com.aggy.booking.Model.*;
 import com.aggy.booking.Service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/booking")
@@ -59,7 +61,7 @@ public class BookingController {
 
     @GetMapping("/available-slots")
     @ResponseBody
-    public List<TimeSlot> getAvailableSlots(@RequestParam Long providerId,
+    public List<TimeSlotDTO> getAvailableSlots(@RequestParam Long providerId,
             @RequestParam String date) {
         try {
             Optional<ServiceProvider> providerOpt = serviceProviderService.getServiceProviderById(providerId);
@@ -67,7 +69,16 @@ public class BookingController {
             if (providerOpt.isPresent()) {
                 LocalDate localDate = LocalDate.parse(date);
                 List<TimeSlot> slots = timeSlotService.getAvailableTimeSlots(providerOpt.get(), localDate);
-                return slots;
+                
+                // Convert TimeSlot entities to DTOs
+                return slots.stream()
+                    .map(slot -> new TimeSlotDTO(
+                        slot.getId(),
+                        slot.getStartTime(),
+                        slot.getEndTime(),
+                        slot.getIsAvailable()
+                    ))
+                    .collect(Collectors.toList());
             }
             return java.util.Collections.emptyList();
         } catch (Exception e) {

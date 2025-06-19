@@ -179,6 +179,10 @@
                         <p id="summaryService" class="font-medium text-gray-800">-</p>
                     </div>
                     <div>
+                        <p class="text-sm text-gray-600">Provider</p>
+                        <p id="summaryProvider" class="font-medium text-gray-800">-</p>
+                    </div>
+                    <div>
                         <p class="text-sm text-gray-600">Date & Time</p>
                         <p id="summaryDateTime" class="font-medium text-gray-800">-</p>
                     </div>
@@ -337,8 +341,7 @@
 
                 document.getElementById('summaryService').textContent = selectedServiceName;
                 document.getElementById('summaryProvider').textContent = selectedProviderName;
-                document.getElementById('summaryDate').textContent = formatDate(date);
-                document.getElementById('summaryTime').textContent = formatTime(selectedDateTime);
+                document.getElementById('summaryDateTime').textContent = formatDate(date) + ' at ' + formatTime(selectedDateTime);
                 document.getElementById('summaryPrice').textContent = '$' + selectedServicePrice;
             } else {
                 summaryDiv.style.display = 'none';
@@ -346,7 +349,7 @@
         }
 
         function formatDate(dateString) {
-            const date = new Date(dateString);
+            const date = new Date(dateString + 'T00:00:00');
             return date.toLocaleDateString('en-US', {
                 weekday: 'long',
                 year: 'numeric',

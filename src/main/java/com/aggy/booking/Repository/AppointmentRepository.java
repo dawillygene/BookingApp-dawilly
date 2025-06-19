@@ -65,4 +65,22 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     // Find appointments by provider, date range and status
     List<Appointment> findByProviderAndAppointmentDateTimeBetweenAndStatusInOrderByAppointmentDateTime(
         ServiceProvider provider, LocalDateTime start, LocalDateTime end, List<AppointmentStatus> statuses);
+    
+    // Additional admin methods
+    
+    /**
+     * Find appointments between dates
+     */
+    List<Appointment> findByAppointmentDateTimeBetween(LocalDateTime start, LocalDateTime end);
+    
+    /**
+     * Find appointments by status
+     */
+    List<Appointment> findByStatus(AppointmentStatus status);
+    
+    /**
+     * Find top N appointments ordered by creation date desc
+     */
+    @Query("SELECT a FROM Appointment a ORDER BY a.createdAt DESC")
+    List<Appointment> findTopNByOrderByCreatedAtDesc(org.springframework.data.domain.Pageable pageable);
 }

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title th:text="${pageTitle + ' - Booking Web Application'}">Service Categories - Booking Web Application</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 gradient-bg text-white flex-shrink-0">
+            <div class="p-6">
+                <h1 class="text-xl font-bold">
+                    <i class="fas fa-shield-alt mr-2"></i> Admin Panel
+                </h1>
+            </div>
+
+            <nav class="mt-6">
+                <a href="/admin" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span class="ml-3">Dashboard</span>
+                </a>
+                <a href="/admin/users" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-users w-5"></i>
+                    <span class="ml-3">Users</span>
+                </a>
+                <a href="/admin/providers" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-user-tie w-5"></i>
+                    <span class="ml-3">Providers</span>
+                </a>
+                <a href="/admin/services" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-cogs w-5"></i>
+                    <span class="ml-3">Services</span>
+                </a>
+                <a href="/admin/categories" class="sidebar-link flex items-center px-6 py-3 active">
+                    <i class="fas fa-tags w-5"></i>
+                    <span class="ml-3">Categories</span>
+                </a>
+                <a href="/admin/analytics" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span class="ml-3">Analytics</span>
+                </a>
+                <a href="/admin/reports" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-file-alt w-5"></i>
+                    <span class="ml-3">Reports</span>
+                </a>
+            </nav>
+
+            <div class="absolute bottom-6 left-6">
+                <a href="/dashboard" class="text-white/80 hover:text-white flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <span>Back to App</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800" th:text="${pageTitle}">Service Categories</h2>
+                        <nav class="text-sm text-gray-600">
+                            <span>Admin / Categories</span>
+                        </nav>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-600">Welcome, Admin</span>
+                        <a href="/logout" class="text-red-600 hover:text-red-800 transition-colors">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Success/Error Messages -->
+                <div th:if="${success}" class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded" role="alert">
+                    <span th:text="${success}"></span>
+                </div>
+                <div th:if="${error}" class="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+                    <span th:text="${error}"></span>
+                </div>
+
+                <!-- Add New Category Form -->
+                <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Add New Category</h3>
+                    <form th:action="@{/admin/categories}" method="post" th:object="${newCategory}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Category Name</label>
+                            <input type="text" th:field="*{name}" id="name" placeholder="e.g., Health & Wellness" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <input type="text" th:field="*{description}" id="description" placeholder="Category description" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label for="icon" class="block text-sm font-medium text-gray-700 mb-2">Icon (FontAwesome)</label>
+                            <input type="text" th:field="*{icon}" id="icon" placeholder="fas fa-heart" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        <div class="flex items-end">
+                            <button type="submit" class="w-full px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-plus mr-2"></i>Add Category
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Categories Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div th:each="category : ${categories}" class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center">
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                                    <i th:class="${category.icon ?: 'fas fa-tag'}" class="text-blue-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-800" th:text="${category.name}">Category Name</h3>
+                                    <p class="text-sm text-gray-500" th:text="${category.description}">Description</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button type="button" th:onclick="'editCategory(' + ${category.id} + ')'" class="text-blue-600 hover:text-blue-800" title="Edit Category">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" th:onclick="'deleteCategory(' + ${category.id} + ', \'' + ${category.name} + '\')'" class="text-red-600 hover:text-red-800" title="Delete Category">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">Services:</span>
+                                <span class="font-medium" th:text="${category.serviceCount ?: '0'}">0</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm mt-2">
+                                <span class="text-gray-600">Status:</span>
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full" th:classappend="${category.isActive} ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" th:text="${category.isActive} ? 'Active' : 'Inactive'">Active</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm mt-2">
+                                <span class="text-gray-600">Created:</span>
+                                <span class="text-gray-800" th:text="${#temporals.format(category.createdAt, 'MMM dd, yyyy')}">Jan 15, 2024</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t">
+                            <button type="button" th:onclick="'toggleCategoryStatus(' + ${category.id} + ')'" th:class="${category.isActive} ? 'w-full px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors' : 'w-full px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors'"
+                                th:text="${category.isActive} ? 'Deactivate' : 'Activate'">
+                                Deactivate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(categories)}" class="text-center py-12">
+                    <i class="fas fa-tags text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
+                    <p class="text-gray-500 mb-6">Create your first service category to get started.</p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Edit Category Modal -->
+    <div id="editModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Edit Category</h3>
+                    <button type="button" onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <form id="editForm" method="post">
+                    <input type="hidden" id="editCategoryId" name="id">
+                    <div class="mb-4">
+                        <label for="editName" class="block text-sm font-medium text-gray-700 mb-2">Category Name</label>
+                        <input type="text" id="editName" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="mb-4">
+                        <label for="editDescription" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <input type="text" id="editDescription" name="description" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="mb-6">
+                        <label for="editIcon" class="block text-sm font-medium text-gray-700 mb-2">Icon (FontAwesome)</label>
+                        <input type="text" id="editIcon" name="icon" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="closeEditModal()" class="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                            Update
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function editCategory(categoryId) {
+            // This would fetch category data and populate the modal
+            // For now, we'll show a placeholder
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editCategoryId').value = categoryId;
+            // In a real implementation, you'd fetch the category data here
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function toggleCategoryStatus(categoryId) {
+            if (confirm('Are you sure you want to toggle this category\'s status?')) {
+                fetch(`/admin/categories/${categoryId}/toggle-status`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while updating category status');
+                    });
+            }
+        }
+
+        function deleteCategory(categoryId, categoryName) {
+            if (confirm(`Are you sure you want to delete "${categoryName}"? This action cannot be undone.`)) {
+                fetch(`/admin/categories/${categoryId}/delete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deleting category');
+                    });
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+    </script>
+</body>
+
+</html>

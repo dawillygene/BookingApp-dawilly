@@ -109,10 +109,7 @@
                                                 </td>
                                                 <td>
                                                     <div class="btn-group" role="group">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTimeSlotModal" 
-                                                            th:data-slot-id="${slot.id}" 
-                                                            th:data-start-time="${#temporals.format(slot.startTime, 'yyyy-MM-dd\'T\'HH:mm')}" 
-                                                            th:data-end-time="${#temporals.format(slot.endTime, 'yyyy-MM-dd\'T\'HH:mm')}">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editTimeSlotModal" th:data-slot-id="${slot.id}" th:data-start-time="${#temporals.format(slot.startTime, 'yyyy-MM-dd''T''HH:mm')}" th:data-end-time="${#temporals.format(slot.endTime, 'yyyy-MM-dd''T''HH:mm')}">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
                                                         <form th:action="@{/provider/schedule/delete/{id}(id=${slot.id})}" method="post" class="d-inline">

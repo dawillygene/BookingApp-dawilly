@@ -54,7 +54,7 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
     Long countAvailableForToday(@Param("today") LocalDateTime today);
     
     // Additional methods for TimeSlotService
-    @Query("SELECT ts FROM TimeSlot ts WHERE ts.provider = :provider AND ts.isAvailable = true AND ts.startTime BETWEEN :startDate AND :endDate ORDER BY ts.startTime ASC")
+    @Query("SELECT ts FROM TimeSlot ts WHERE ts.provider = :provider AND ts.isAvailable = true AND ts.startTime >= :startDate AND ts.startTime < :endDate ORDER BY ts.startTime ASC")
     List<TimeSlot> findAvailableSlotsByProviderAndDateRange(@Param("provider") ServiceProvider provider, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT ts FROM TimeSlot ts WHERE ts.isAvailable = true AND ts.startTime BETWEEN :startDate AND :endDate ORDER BY ts.startTime ASC")

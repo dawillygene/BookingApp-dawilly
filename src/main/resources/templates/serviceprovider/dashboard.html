@@ -147,12 +147,12 @@
                         <div class="w-full bg-gray-200 rounded-full h-2">
                             <div class="bg-green-600 h-2 rounded-full" th:style="'width: ' + ${analytics.completionRate} + '%'"></div>
                         </div>
-                        
+
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-600">Average Value</span>
                             <span class="text-sm font-semibold text-blue-600">$<span th:text="${analytics.avgAppointmentValue}">0</span></span>
                         </div>
-                        
+
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-600">This Month</span>
                             <span class="text-sm font-semibold text-purple-600" th:text="${analytics.thisMonthAppointments}">0</span>
@@ -263,7 +263,7 @@
                             </a>
                         </div>
                         <div th:if="${!#lists.isEmpty(upcomingAppointments)}" class="space-y-4">
-                            <div th:each="appointment : ${#lists.sort(upcomingAppointments, 'appointmentDateTime')}" class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div th:each="appointment : ${upcomingAppointments}" class="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                                 <div class="flex items-center space-x-4">
                                     <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                                         <i class="fas fa-user text-green-600"></i>
@@ -271,7 +271,7 @@
                                     <div>
                                         <p class="font-medium text-gray-900" th:text="${appointment.user.firstName + ' ' + appointment.user.lastName}">Patient Name</p>
                                         <p class="text-sm text-gray-500" th:text="${appointment.service.name}">Service</p>
-                                        <p class="text-xs text-gray-400" th:text="${appointment.formattedDateTime}">Date & Time</p>
+                                        <p class="text-xs text-gray-400" th:text="${#temporals.format(appointment.appointmentDateTime, 'MMM dd, yyyy HH:mm')}">Date & Time</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-2">
@@ -308,7 +308,7 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-xs text-gray-400" th:text="${appointment.formattedDate}">Date</p>
+                                    <p class="text-xs text-gray-400" th:text="${#temporals.format(appointment.appointmentDateTime, 'MMM dd, yyyy')}">Date</p>
                                     <span class="text-xs px-2 py-1 rounded" th:classappend="${appointment.status.name() == 'COMPLETED'} ? 'bg-green-100 text-green-800' : 
                                                          (${appointment.status.name() == 'CONFIRMED'} ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800')" th:text="${appointment.status.name()}">Status</span>
                                 </div>

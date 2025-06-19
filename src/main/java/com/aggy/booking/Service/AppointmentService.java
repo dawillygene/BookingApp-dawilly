@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -20,7 +22,7 @@ public class AppointmentService {
     private AppointmentRepository appointmentRepository;
     
     @Autowired
-    private TimeSlotService timeSlotService;
+    private EmailService emailService;
     
     // Create a new appointment
     public Appointment createAppointment(User user, com.aggy.booking.Model.Service service, 
@@ -61,7 +63,18 @@ public class AppointmentService {
         timeSlot.book();
         timeSlot.setAppointment(appointment);
         
-        return appointmentRepository.save(appointment);
+        Appointment savedAppointment = appointmentRepository.save(appointment);
+        
+        // Send email notifications
+        try {
+            emailService.sendBookingConfirmation(savedAppointment);
+            emailService.sendProviderBookingNotification(savedAppointment);
+        } catch (Exception e) {
+            // Log email errors but don't fail the booking
+            System.err.println("Failed to send booking notification emails: " + e.getMessage());
+        }
+        
+        return savedAppointment;
     }
     
     // Get all appointments for a user
@@ -129,7 +142,17 @@ public class AppointmentService {
                 timeSlot.release();
             }
             
-            return appointmentRepository.save(appointment);
+            Appointment savedAppointment = appointmentRepository.save(appointment);
+            
+            // Send cancellation notification emails
+            try {
+                emailService.sendCancellationNotification(savedAppointment, "Cancelled by customer");
+            } catch (Exception e) {
+                // Log email errors but don't fail the cancellation
+                System.err.println("Failed to send cancellation notification emails: " + e.getMessage());
+            }
+            
+            return savedAppointment;
         }
         throw new RuntimeException("Appointment not found");
     }
@@ -188,10 +211,6 @@ public class AppointmentService {
         return appointmentRepository.findTodaysAppointments(LocalDateTime.now());
     }
     
-    public Long getTotalAppointmentsCount() {
-        return appointmentRepository.count();
-    }
-    
     public Long getAppointmentCountByStatus(AppointmentStatus status) {
         return appointmentRepository.countByStatus(status);
     }
@@ -244,5 +263,112 @@ public class AppointmentService {
         
         public Long getCancelledCount() { return cancelledCount; }
         public void setCancelledCount(Long cancelledCount) { this.cancelledCount = cancelledCount; }
+    }
+    
+    // ================= ADMIN METHODS =================
+    
+    /**
+     * Get total appointments count for admin dashboard
+     */
+    public Long getTotalAppointmentsCount() {
+        return appointmentRepository.count();
+    }
+    
+    /**
+     * Get today's appointments count
+     */
+    public int getTodayAppointmentsCount() {
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        return appointmentRepository.findByAppointmentDateTimeBetween(startOfDay, endOfDay).size();
+    }
+    
+    /**
+     * Get today's revenue
+     */
+    public Double getTodayRevenue() {
+        LocalDateTime startOfDay = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfDay = startOfDay.plusDays(1);
+        return appointmentRepository.findByAppointmentDateTimeBetween(startOfDay, endOfDay)
+                .stream()
+                .filter(apt -> apt.getStatus() == AppointmentStatus.CONFIRMED || apt.getStatus() == AppointmentStatus.COMPLETED)
+                .mapToDouble(Appointment::getPrice)
+                .sum();
+    }
+    
+    /**
+     * Get monthly revenue
+     */
+    public Double getMonthlyRevenue() {
+        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+        return appointmentRepository.findByAppointmentDateTimeBetween(startOfMonth, endOfMonth)
+                .stream()
+                .filter(apt -> apt.getStatus() == AppointmentStatus.CONFIRMED || apt.getStatus() == AppointmentStatus.COMPLETED)
+                .mapToDouble(Appointment::getPrice)
+                .sum();
+    }
+    
+    /**
+     * Get monthly appointments count
+     */
+    public int getMonthlyAppointmentsCount() {
+        LocalDateTime startOfMonth = LocalDateTime.now().withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0);
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
+        return appointmentRepository.findByAppointmentDateTimeBetween(startOfMonth, endOfMonth).size();
+    }
+    
+    /**
+     * Get recent appointments for admin dashboard
+     */
+    public List<Appointment> getRecentAppointmentsForAdmin(int limit) {
+        return appointmentRepository.findTopNByOrderByCreatedAtDesc(PageRequest.of(0, limit));
+    }
+    
+    /**
+     * Get pending appointments count
+     */
+    public int getPendingAppointmentsCount() {
+        return appointmentRepository.findByStatus(AppointmentStatus.PENDING).size();
+    }
+    
+    /**
+     * Get booking trends for analytics
+     */
+    public Map<String, Object> getBookingTrends(java.time.LocalDate startDate, java.time.LocalDate endDate) {
+        // Placeholder implementation - would need more complex queries
+        Map<String, Object> trends = new HashMap<>();
+        trends.put("message", "Booking trends data would go here");
+        return trends;
+    }
+    
+    /**
+     * Get revenue analytics
+     */
+    public Map<String, Object> getRevenueAnalytics(java.time.LocalDate startDate, java.time.LocalDate endDate) {
+        // Placeholder implementation - would need more complex queries
+        Map<String, Object> revenue = new HashMap<>();
+        revenue.put("message", "Revenue analytics data would go here");
+        return revenue;
+    }
+    
+    /**
+     * Get appointment summary
+     */
+    public Map<String, Object> getAppointmentSummary(java.time.LocalDate startDate, java.time.LocalDate endDate) {
+        // Placeholder implementation
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("message", "Appointment summary data would go here");
+        return summary;
+    }
+    
+    /**
+     * Get revenue summary
+     */
+    public Map<String, Object> getRevenueSummary(java.time.LocalDate startDate, java.time.LocalDate endDate) {
+        // Placeholder implementation
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("message", "Revenue summary data would go here");
+        return summary;
     }
 }

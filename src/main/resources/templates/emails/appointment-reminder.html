@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Reminder</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .content {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 8px 8px;
+        }
+        
+        .appointment-details {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .detail-value {
+            color: #333;
+        }
+        
+        .reminder-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f1f1f1;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .button {
+            display: inline-block;
+            background: #f59e0b;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>⏰ Appointment Reminder</h1>
+        <p>Your appointment is tomorrow!</p>
+    </div>
+
+    <div class="content">
+        <p>Dear <strong th:text="${customerName}">Customer</strong>,</p>
+
+        <div class="reminder-box">
+            <h3 style="margin-top: 0; color: #92400e;">📅 Don't Forget!</h3>
+            <p style="margin-bottom: 0;">You have an appointment scheduled for <strong th:text="${appointmentDate}">tomorrow</strong>.</p>
+        </div>
+
+        <div class="appointment-details">
+            <h3>📋 Appointment Details</h3>
+
+            <div class="detail-row">
+                <span class="detail-label">Service:</span>
+                <span class="detail-value" th:text="${serviceName}">Service Name</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Provider:</span>
+                <span class="detail-value" th:text="${providerName}">Provider Name</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Date & Time:</span>
+                <span class="detail-value" th:text="${appointmentDate}">Date and Time</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Duration:</span>
+                <span class="detail-value" th:text="${appointmentDuration} + ' minutes'">Duration</span>
+            </div>
+
+            <div class="detail-row" th:if="${providerPhone}">
+                <span class="detail-label">Provider Phone:</span>
+                <span class="detail-value" th:text="${providerPhone}">Provider Phone</span>
+            </div>
+
+            <div class="detail-row" th:if="${providerAddress}">
+                <span class="detail-label">Location:</span>
+                <span class="detail-value" th:text="${providerAddress}">Provider Address</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Booking ID:</span>
+                <span class="detail-value" th:text="${appointmentId}">ID</span>
+            </div>
+        </div>
+
+        <h3>📝 Important Reminders</h3>
+        <ul>
+            <li><strong>Arrive 5-10 minutes early</strong> to allow time for check-in</li>
+            <li>Bring any required items or documentation</li>
+            <li>Contact the provider if you're running late</li>
+            <li>If you need to reschedule, please do so at least 24 hours in advance</li>
+        </ul>
+
+        <div style="text-align: center;">
+            <a href="#" class="button">View My Appointments</a>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p><strong>We look forward to seeing you!</strong></p>
+        <p>If you need to cancel or reschedule, please contact us as soon as possible.</p>
+        <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+        <p style="font-size: 12px; color: #888;">
+            This is an automated reminder. Please do not reply to this email.
+        </p>
+    </div>
+</body>
+
+</html>

@@ -5,7 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -34,7 +37,31 @@ public interface ServiceProviderRepository extends JpaRepository<ServiceProvider
     
     // Count active providers
     Long countByIsActiveTrue();
+    
+    // Count inactive providers
+    Long countByIsActiveFalse();
 
     // Find provider by email
     ServiceProvider findByEmail(String email);
+    
+    // ================= ADMIN PAGINATION METHODS =================
+    
+    // Find by status with pagination
+    Page<ServiceProvider> findByIsActiveTrue(Pageable pageable);
+    Page<ServiceProvider> findByIsActiveFalse(Pageable pageable);
+    
+    // Find by date range
+    List<ServiceProvider> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+    
+    // Advanced search with pagination
+    @Query("SELECT sp FROM ServiceProvider sp WHERE " +
+           "(:name IS NULL OR LOWER(sp.firstName) LIKE LOWER(CONCAT('%', :name, '%')) OR LOWER(sp.lastName) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
+           "(:specialization IS NULL OR sp.specialization = :specialization) AND " +
+           "(:location IS NULL OR sp.location = :location) AND " +
+           "(:isActive IS NULL OR sp.isActive = :isActive)")
+    Page<ServiceProvider> searchProviders(@Param("name") String name, 
+                                        @Param("specialization") String specialization,
+                                        @Param("location") String location, 
+                                        @Param("isActive") Boolean isActive, 
+                                        Pageable pageable);
 }

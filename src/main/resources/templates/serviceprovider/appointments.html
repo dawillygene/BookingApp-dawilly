@@ -135,10 +135,11 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="card-title mb-0" th:text="${appointment.service.name}"></h6>
-                                    <span class="badge status-badge" th:class="'badge status-badge ' + 
-                                                   (${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).CONFIRMED ? 'bg-success' : 
-                                                    ${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).PENDING ? 'bg-warning' : 
-                                                    ${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).CANCELLED ? 'bg-danger' : 'bg-secondary')" th:text="${appointment.status}"></span>
+                                    <span class="badge status-badge" 
+                                          th:classappend="${appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CONFIRMED ? 'bg-success' : 
+                                                           (appointment.status == T(com.aggy.booking.Model.AppointmentStatus).PENDING ? 'bg-warning' : 
+                                                           (appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CANCELLED ? 'bg-danger' : 'bg-secondary'))}" 
+                                          th:text="${appointment.status}"></span>
                                 </div>
                                 <p class="card-text mb-1">
                                     <i class="fas fa-user"></i>
@@ -187,14 +188,15 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="card-title mb-0" th:text="${appointment.service.name}"></h6>
-                                    <span class="badge status-badge" th:class="'badge status-badge ' + 
-                                                   (${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).CONFIRMED ? 'bg-success' : 
-                                                    ${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).PENDING ? 'bg-warning' : 
-                                                    ${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).CANCELLED ? 'bg-danger' : 'bg-secondary')" th:text="${appointment.status}"></span>
+                                    <span class="badge status-badge" 
+                                          th:classappend="${appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CONFIRMED ? 'bg-success' : 
+                                                           (appointment.status == T(com.aggy.booking.Model.AppointmentStatus).PENDING ? 'bg-warning' : 
+                                                           (appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CANCELLED ? 'bg-danger' : 'bg-secondary'))}" 
+                                          th:text="${appointment.status}"></span>
                                 </div>
                                 <p class="card-text mb-1">
                                     <i class="fas fa-calendar"></i>
-                                    <span th:text="${#temporals.format(appointment.appointmentDate, 'MMM dd, yyyy')}"></span>
+                                    <span th:text="${#temporals.format(appointment.appointmentDateTime, 'MMM dd, yyyy')}"></span>
                                 </p>
                                 <p class="card-text mb-1">
                                     <i class="fas fa-user"></i>
@@ -240,14 +242,15 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="card-title mb-0" th:text="${appointment.service.name}"></h6>
-                                    <span class="badge status-badge" th:class="'badge status-badge ' + 
-                                                   (${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).CONFIRMED ? 'bg-success' : 
-                                                    ${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).PENDING ? 'bg-warning' : 
-                                                    ${appointment.status} == T(com.aggy.booking.Model.AppointmentStatus).CANCELLED ? 'bg-danger' : 'bg-secondary')" th:text="${appointment.status}"></span>
+                                    <span class="badge status-badge" 
+                                          th:classappend="${appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CONFIRMED ? 'bg-success' : 
+                                                           (appointment.status == T(com.aggy.booking.Model.AppointmentStatus).PENDING ? 'bg-warning' : 
+                                                           (appointment.status == T(com.aggy.booking.Model.AppointmentStatus).CANCELLED ? 'bg-danger' : 'bg-secondary'))}" 
+                                          th:text="${appointment.status}"></span>
                                 </div>
                                 <p class="card-text mb-1">
                                     <i class="fas fa-calendar"></i>
-                                    <span th:text="${#temporals.format(appointment.appointmentDate, 'MMM dd, yyyy')}"></span>
+                                    <span th:text="${#temporals.format(appointment.appointmentDateTime, 'MMM dd, yyyy')}"></span>
                                 </p>
                                 <p class="card-text mb-1">
                                     <i class="fas fa-user"></i>
@@ -315,21 +318,22 @@
         // Update appointment status
         function updateAppointmentStatus(appointmentId, status) {
             if (confirm(`Are you sure you want to ${status.toLowerCase()} this appointment?`)) {
-                fetch(`/provider/appointments/${appointmentId}/status`, {
+                const formData = new FormData();
+                formData.append('status', status);
+
+                fetch(`/provider/appointment/${appointmentId}/status`, {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest'
                         },
-                        body: JSON.stringify({
-                            status: status
-                        })
+                        body: formData
                     })
-                    .then(response => {
-                        if (response.ok) {
+                    .then(response => response.text())
+                    .then(result => {
+                        if (result.startsWith('success:')) {
                             location.reload();
                         } else {
-                            alert('Failed to update appointment status.');
+                            alert('Failed to update appointment status: ' + result.replace('error:', ''));
                         }
                     })
                     .catch(error => {

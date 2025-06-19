@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title th:text="${pageTitle + ' - Booking Web Application'}">Analytics - Booking Web Application</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .sidebar-link {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .sidebar-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 gradient-bg text-white flex-shrink-0">
+            <div class="p-6">
+                <h1 class="text-xl font-bold">
+                    <i class="fas fa-shield-alt mr-2"></i> Admin Panel
+                </h1>
+            </div>
+
+            <nav class="mt-6">
+                <a href="/admin" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span class="ml-3">Dashboard</span>
+                </a>
+                <a href="/admin/users" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-users w-5"></i>
+                    <span class="ml-3">Users</span>
+                </a>
+                <a href="/admin/providers" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-user-tie w-5"></i>
+                    <span class="ml-3">Providers</span>
+                </a>
+                <a href="/admin/services" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-cogs w-5"></i>
+                    <span class="ml-3">Services</span>
+                </a>
+                <a href="/admin/categories" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-tags w-5"></i>
+                    <span class="ml-3">Categories</span>
+                </a>
+                <a href="/admin/analytics" class="sidebar-link flex items-center px-6 py-3 active">
+                    <i class="fas fa-chart-bar w-5"></i>
+                    <span class="ml-3">Analytics</span>
+                </a>
+                <a href="/admin/reports" class="sidebar-link flex items-center px-6 py-3">
+                    <i class="fas fa-file-alt w-5"></i>
+                    <span class="ml-3">Reports</span>
+                </a>
+            </nav>
+
+            <div class="absolute bottom-6 left-6">
+                <a href="/dashboard" class="text-white/80 hover:text-white flex items-center">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <span>Back to App</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <header class="bg-white shadow-sm border-b">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800" th:text="${pageTitle}">System Analytics</h2>
+                        <nav class="text-sm text-gray-600">
+                            <span>Admin / Analytics</span>
+                        </nav>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <label for="dateRange" class="text-sm text-gray-600">Period:</label>
+                            <select id="dateRange" class="px-3 py-1 border border-gray-300 rounded text-sm">
+                                <option value="7">Last 7 days</option>
+                                <option value="30" selected>Last 30 days</option>
+                                <option value="90">Last 90 days</option>
+                                <option value="365">Last year</option>
+                            </select>
+                        </div>
+                        <span class="text-gray-600">Welcome, Admin</span>
+                        <a href="/logout" class="text-red-600 hover:text-red-800 transition-colors">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Key Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-100 text-sm">Total Bookings</p>
+                                <p class="text-3xl font-bold">1,247</p>
+                                <p class="text-blue-100 text-sm">+12% from last month</p>
+                            </div>
+                            <i class="fas fa-calendar-check text-4xl text-blue-200"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-100 text-sm">Revenue</p>
+                                <p class="text-3xl font-bold">$23,456</p>
+                                <p class="text-green-100 text-sm">+8% from last month</p>
+                            </div>
+                            <i class="fas fa-dollar-sign text-4xl text-green-200"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-100 text-sm">Active Users</p>
+                                <p class="text-3xl font-bold">892</p>
+                                <p class="text-purple-100 text-sm">+15% from last month</p>
+                            </div>
+                            <i class="fas fa-users text-4xl text-purple-200"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-xl text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-orange-100 text-sm">Providers</p>
+                                <p class="text-3xl font-bold">156</p>
+                                <p class="text-orange-100 text-sm">+5% from last month</p>
+                            </div>
+                            <i class="fas fa-user-tie text-4xl text-orange-200"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Booking Trends Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Booking Trends</h3>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                <span class="text-sm text-gray-600">Bookings</span>
+                            </div>
+                        </div>
+                        <div class="h-80">
+                            <canvas id="bookingTrendsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Revenue Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">Revenue Analytics</h3>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span class="text-sm text-gray-600">Revenue</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                    <span class="text-sm text-gray-600">Target</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-80">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Service Popularity -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Service Popularity</h3>
+                        <div class="h-80">
+                            <canvas id="servicePopularityChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- User Growth -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">User Growth</h3>
+                        <div class="h-80">
+                            <canvas id="userGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Metrics -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-6">Performance Metrics</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-2xl font-bold text-blue-600">87%</span>
+                            </div>
+                            <h4 class="font-medium text-gray-800">Booking Success Rate</h4>
+                            <p class="text-sm text-gray-600">Completed bookings</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+                                <span class="text-2xl font-bold text-green-600">4.6</span>
+                            </div>
+                            <h4 class="font-medium text-gray-800">Average Rating</h4>
+                            <p class="text-sm text-gray-600">Customer satisfaction</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                                <span class="text-2xl font-bold text-purple-600">23m</span>
+                            </div>
+                            <h4 class="font-medium text-gray-800">Avg. Response Time</h4>
+                            <p class="text-sm text-gray-600">Provider response</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 bg-orange-100 rounded-full flex items-center justify-center">
+                                <span class="text-2xl font-bold text-orange-600">94%</span>
+                            </div>
+                            <h4 class="font-medium text-gray-800">Provider Approval</h4>
+                            <p class="text-sm text-gray-600">Quality providers</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Sample data - in a real application, this would come from the server
+        const bookingTrendsData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Bookings',
+                data: [65, 78, 90, 81, 95, 120],
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+            }]
+        };
+
+        const revenueData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Revenue',
+                data: [2400, 3200, 4100, 3800, 4500, 5200],
+                borderColor: 'rgb(34, 197, 94)',
+                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                tension: 0.4
+            }, {
+                label: 'Target',
+                data: [3000, 3500, 4000, 4500, 5000, 5500],
+                borderColor: 'rgb(59, 130, 246)',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderDash: [5, 5],
+                tension: 0.4
+            }]
+        };
+
+        const servicePopularityData = {
+            labels: ['Massage', 'Consultation', 'Therapy', 'Training', 'Other'],
+            datasets: [{
+                data: [35, 25, 20, 15, 5],
+                backgroundColor: [
+                    'rgb(59, 130, 246)',
+                    'rgb(34, 197, 94)',
+                    'rgb(168, 85, 247)',
+                    'rgb(249, 115, 22)',
+                    'rgb(107, 114, 128)'
+                ]
+            }]
+        };
+
+        const userGrowthData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'New Users',
+                data: [45, 52, 68, 59, 71, 89],
+                backgroundColor: 'rgba(168, 85, 247, 0.8)'
+            }]
+        };
+
+        // Chart configurations
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        };
+
+        // Initialize charts
+        new Chart(document.getElementById('bookingTrendsChart'), {
+            type: 'line',
+            data: bookingTrendsData,
+            options: chartOptions
+        });
+
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: revenueData,
+            options: chartOptions
+        });
+
+        new Chart(document.getElementById('servicePopularityChart'), {
+            type: 'doughnut',
+            data: servicePopularityData,
+            options: {
+                ...chartOptions,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('userGrowthChart'), {
+            type: 'bar',
+            data: userGrowthData,
+            options: chartOptions
+        });
+
+        // Date range change handler
+        document.getElementById('dateRange').addEventListener('change', function() {
+            // In a real application, this would fetch new data based on the selected range
+            console.log('Date range changed to:', this.value, 'days');
+        });
+    </script>
+</body>
+
+</html>

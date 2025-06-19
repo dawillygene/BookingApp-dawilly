@@ -27,6 +27,10 @@ public class Service {
     @Column(name = "category")
     private String category;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_category_id")
+    private ServiceCategory serviceCategory;
+    
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
@@ -109,6 +113,14 @@ public class Service {
     
     public void setCategory(String category) {
         this.category = category;
+    }
+    
+    public ServiceCategory getServiceCategory() {
+        return serviceCategory;
+    }
+    
+    public void setServiceCategory(ServiceCategory serviceCategory) {
+        this.serviceCategory = serviceCategory;
     }
     
     public Boolean getIsActive() {
